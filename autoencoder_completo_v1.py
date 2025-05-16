@@ -19,6 +19,15 @@ BATCH_AUDIOS = 10
 
 # --- PREPROCESADO ---
 def preprocess_signal(signal):
+    """
+    Convierte una señal de audio en un espectrograma mel-normalizado de tamaño fijo.
+
+    Args:
+        signal (np.ndarray): Señal de audio en forma de array de enteros.
+
+    Returns:
+        np.ndarray: Espectrograma mel normalizado y ajustado a dimensiones fijas.
+    """
     signal = signal.astype(np.float32)
     signal = signal / np.max(np.abs(signal) + 1e-6)  # Previene división por cero
     S = librosa.feature.melspectrogram(y=signal, sr=SAMPLING_RATE, n_mels=N_MELS)
@@ -36,6 +45,12 @@ def preprocess_signal(signal):
 
 # --- CAPTURA DE AUDIO ---
 def record_audio():
+    """
+    Graba audio durante una duración fija usando `arecord` y lo convierte en un array NumPy.
+
+    Returns:
+        np.ndarray: Señal de audio grabada en formato entero de 32 bits.
+    """
     print("[INFO] Grabando muestra de audio...")
     cmd = [
         'arecord',
@@ -59,6 +74,15 @@ def record_audio():
 
 # --- MODELO ---
 def autoencoder_model(input_dim):
+    """
+    Construye un modelo de autoencoder simple completamente conectado.
+
+    Args:
+        input_dim (int): Dimensión de entrada del autoencoder.
+
+    Returns:
+        tensorflow.keras.models.Model: Modelo compilado del autoencoder.
+    """
     inp = Input(shape=(input_dim,))
     x = Dense(128, activation='relu')(inp)
     x = Dense(32, activation='relu')(x)
@@ -72,9 +96,14 @@ def autoencoder_model(input_dim):
 
 # --- FLUJO PRINCIPAL ---
 def main():
+    """
+    Entrena un autoencoder con muestras de audio en tiempo real.
+    Una vez alcanzado el umbral de pérdida en validación, pasa a predicción continua
+    para estimar el nivel de daño acústico en nuevas muestras de audio.
+    """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batch_size', type=int, default=16)
-    parser.add_argument('--threshold', type=float, default=0.1)
+    parser.add_argument('--batch_size', type=int, default=16, help='Tamaño del batch de entrenamiento')
+    parser.add_argument('--threshold', type=float, default=0.1, help='Umbral de pérdida para detener entrenamiento')
     args = parser.parse_args()
 
     input_dim = N_MELS * FIXED_FRAMES

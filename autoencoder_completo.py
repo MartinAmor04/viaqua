@@ -106,7 +106,7 @@ def autoencoder_model(input_dim):
     x = Dense(256, activation='relu')(inp)
     decoded = Dense(input_dim, activation='sigmoid')(x)
     model = Model(inp, decoded)
-    model.compile(optimizer=Adam(1e-3), loss='mse', metrics=['mae'])
+    model.compile(optimizer=Adam(1e-3), loss='mae', metrics=['mae'])
     return model
 
 # --- FLUJO PRINCIPAL ---
@@ -135,7 +135,7 @@ def main():
         X_batch = np.array(X_batch)
         X_train, X_val = train_test_split(X_batch, test_size=0.2, random_state=42)
 
-        early = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True, verbose=1)
+        early = EarlyStopping(monitor='val_loss', patience=7, restore_best_weights=True, verbose=1)
         history = model.fit(
             X_train, X_train,
             validation_data=(X_val, X_val),
@@ -145,11 +145,13 @@ def main():
             callbacks=[early]
         )
 
-        val_loss = history.history['val_loss'][0]
-        loss = history.history['loss'][0]
-        mae = history.history['mae'][0]
-        print(f'Época {sample_idx} -> loss: {loss:.6f}, val_loss: {val_loss:.6f}, mae: {mae:.6f}')
+        best_epoch = np.argmin(history.history['val_loss'])
+        val_loss = history.history['val_loss'][best_epoch]
+        loss = history.history['loss'][best_epoch]
+        mae = history.history['mae'][best_epoch]
         sample_idx += 1
+        print(f'Época {sample_idx}, mejor en época {best_epoch+1} -> loss: {loss:.6f}, val_loss: {val_loss:.6f}, mae: {mae:.6f}')
+        
 
         if val_loss < args.threshold:
             print('[INFO] Umbral alcanzado. Pasando a predicción...')
@@ -180,7 +182,7 @@ def main():
         
         # Cálculo del % de daño usando err_max
         if err <= args.threshold:
-            pct = 0.0
+           # pct = 0.0
         else:
             denom = max(err_max - args.threshold, 1e-6)
             pct = np.clip((err - args.threshold) / denom, 0, 1) * 100

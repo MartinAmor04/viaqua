@@ -11,25 +11,32 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 
 # --- CONFIGURACIÓN ---
-N_MELS = 128
-FIXED_FRAMES = 128
-DURATION = 3.0
-SAMPLING_RATE = 48000
-BATCH_AUDIOS = 10
+N_MELS = 128                # Resolución en frecuencia (bandas Mel)
+FIXED_FRAMES = 128          # Resolución en tiempo (nº de "ventanas" fijas)
+DURATION = 3.0              # Duración de cada muestra en segundos
+SAMPLING_RATE = 48000       # Frecuencia de muestreo en Hz
+BATCH_AUDIOS = 10           # Muestras por lote de entrenamiento
+WINDOW_SIZE = 100           # Número de errores recientes que guardamos
+PERCENTILE = 95             # Percentil que usaremos para definir err_max
+MIN_UPDATES_IN_WINDOW = 5   # Mínimo de valores en buffer para empezar a calcular percentil
 
 # --- PREPROCESADO ---
 def preprocess_signal(signal):
     """
-    Convierte una señal de audio en un espectrograma mel-normalizado de tamaño fijo.
+    Convierte una señal de audio cruda en un espectrograma Mel normalizado.
 
-    Args:
-        signal (np.ndarray): Señal de audio en forma de array de enteros.
+    Parameters
+    ----------
+    signal : np.ndarray
+        Señal de audio en formato mono, con valores enteros.
 
-    Returns:
-        np.ndarray: Espectrograma mel normalizado y ajustado a dimensiones fijas.
+    Returns
+    -------
+    np.ndarray
+        Espectrograma Mel normalizado en el rango [0, 1], con forma (N_MELS, FIXED_FRAMES).
     """
     signal = signal.astype(np.float32)
-    signal = signal / np.max(np.abs(signal) + 1e-6)  # Previene división por cero
+    signal = signal / np.max(np.abs(signal) + 1e-6)  # Normalización segura
     S = librosa.feature.melspectrogram(y=signal, sr=SAMPLING_RATE, n_mels=N_MELS)
     S_dB = librosa.power_to_db(S, ref=np.max)
 
@@ -46,10 +53,12 @@ def preprocess_signal(signal):
 # --- CAPTURA DE AUDIO ---
 def record_audio():
     """
-    Graba audio durante una duración fija usando `arecord` y lo convierte en un array NumPy.
+    Graba una muestra de audio en tiempo real usando `arecord` y la convierte a un array NumPy.
 
-    Returns:
-        np.ndarray: Señal de audio grabada en formato entero de 32 bits.
+    Returns
+    -------
+    np.ndarray
+        Señal de audio capturada como arreglo de enteros de 32 bits.
     """
     print("[INFO] Grabando muestra de audio...")
     cmd = [
@@ -75,20 +84,26 @@ def record_audio():
 # --- MODELO ---
 def autoencoder_model(input_dim):
     """
-    Construye un modelo de autoencoder simple completamente conectado.
+    Construye un autoencoder denso para detección de anomalías en espectrogramas.
 
-    Args:
-        input_dim (int): Dimensión de entrada del autoencoder.
+    Parameters
+    ----------
+    input_dim : int
+        Dimensión de entrada (N_MELS * FIXED_FRAMES).
 
-    Returns:
-        tensorflow.keras.models.Model: Modelo compilado del autoencoder.
+    Returns
+    -------
+    keras.Model
+        Autoencoder compilado listo para entrenamiento.
     """
     inp = Input(shape=(input_dim,))
+    x = Dense(256, activation='relu')(inp)
     x = Dense(128, activation='relu')(inp)
     x = Dense(32, activation='relu')(x)
     bottleneck = Dense(8, activation='relu')(x)
     x = Dense(32, activation='relu')(bottleneck)
     x = Dense(128, activation='relu')(x)
+    x = Dense(256, activation='relu')(inp)
     decoded = Dense(input_dim, activation='sigmoid')(x)
     model = Model(inp, decoded)
     model.compile(optimizer=Adam(1e-3), loss='mse', metrics=['mae'])
@@ -97,13 +112,12 @@ def autoencoder_model(input_dim):
 # --- FLUJO PRINCIPAL ---
 def main():
     """
-    Entrena un autoencoder con muestras de audio en tiempo real.
-    Una vez alcanzado el umbral de pérdida en validación, pasa a predicción continua
-    para estimar el nivel de daño acústico en nuevas muestras de audio.
+    Función principal: entrena un autoencoder en tiempo real con audio grabado,
+    y luego realiza inferencia continua para detectar anomalías acústicas.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batch_size', type=int, default=16, help='Tamaño del batch de entrenamiento')
-    parser.add_argument('--threshold', type=float, default=0.1, help='Umbral de pérdida para detener entrenamiento')
+    parser.add_argument('--batch_size', type=int, default=16, help='Tamaño del batch para entrenamiento.')
+    parser.add_argument('--threshold', type=float, default=0.1, help='Umbral de error para detección de anomalías.')
     args = parser.parse_args()
 
     input_dim = N_MELS * FIXED_FRAMES
@@ -141,14 +155,37 @@ def main():
             print('[INFO] Umbral alcanzado. Pasando a predicción...')
             break
 
+    errores_buffer = []
+    err_max = 1.0
     print('[INFO] Iniciando predicción en tiempo real...')
     while True:
         sig = record_audio()
         X_test = preprocess_signal(sig).flatten()[np.newaxis, ...]
-        rec = model.predict(X_test, verbose=0)
+        rec = model.predict(X_test, verbose=2)
         err = np.mean((X_test - rec) ** 2)
-        pct = min(err / args.threshold, 1.0) * 100
-        print(f'Error: {err:.5f}, Daño estimado: {pct:.2f}%')
+        # Actualización diámica de daño
+        if err > args.threshold:
+            errores_buffer.append(err)
+            # Si excedemos el tamaño del buffer, sacamos el más viejo
+            if len(errores_buffer) > WINDOW_SIZE:
+                errores_buffer.pop(0)
+                
+        # Si tenemos suficientes valores en el buffer, calculamos err_max como percentil 95
+        if len(errores_buffer) >= MIN_UPDATES_IN_WINDOW:
+            nuevo_err_max = np.percentile(errores_buffer, PERCENTILE)
+            # Solo actualizamos si el percentil es mayor al err_max actual
+            if nuevo_err_max < err_max:
+                err_max = float(nuevo_err_max)
+                print(f'[INFO] err_max actualizado por percentil {PERCENTILE}: {err_max:.5f}')
+        
+        # Cálculo del % de daño usando err_max
+        if err <= args.threshold:
+            pct = 0.0
+        else:
+            denom = max(err_max - args.threshold, 1e-6)
+            pct = np.clip((err - args.threshold) / denom, 0, 1) * 100
+        
+        print(f'Error: {err:.5f} | Daño estimado: {pct:6.2f}%')
 
 if __name__ == '__main__':
     main()

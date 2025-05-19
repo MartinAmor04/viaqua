@@ -17,7 +17,7 @@ DURATION = 3.0              # Duración de cada muestra en segundos
 SAMPLING_RATE = 48000       # Frecuencia de muestreo en Hz
 BATCH_AUDIOS = 10           # Muestras por lote de entrenamiento
 WINDOW_SIZE = 100           # Número de errores recientes que guardamos
-PERCENTILE = 95             # Percentil que usaremos para definir err_max
+PERCENTILE = 99             # Percentil que usaremos para definir err_max
 MIN_UPDATES_IN_WINDOW = 5   # Mínimo de valores en buffer para empezar a calcular percentil
 
 # --- PREPROCESADO ---
@@ -97,17 +97,28 @@ def autoencoder_model(input_dim):
         Autoencoder compilado listo para entrenamiento.
     """
     inp = Input(shape=(input_dim,))
-    x = Dense(256, activation='relu')(inp)
     x = Dense(128, activation='relu')(inp)
     x = Dense(32, activation='relu')(x)
-    bottleneck = Dense(8, activation='relu')(x)
+    bottleneck = Dense(16, activation='relu')(x)
     x = Dense(32, activation='relu')(bottleneck)
     x = Dense(128, activation='relu')(x)
-    x = Dense(256, activation='relu')(inp)
     decoded = Dense(input_dim, activation='sigmoid')(x)
     model = Model(inp, decoded)
-    model.compile(optimizer=Adam(1e-3), loss='mae', metrics=['mae'])
+    model.compile(optimizer=Adam(1e-3), loss='mse', metrics=['mae'])
     return model
+    
+def clasificar_danio(pct):
+    if pct == 0:
+        return "Totalmente sano"
+    elif pct <= 25:
+        return "Ligeramente dañado"
+    elif pct <= 50:
+        return "Parcialmente dañado"
+    elif pct <= 75:
+        return "Muy dañado"
+    else:
+        return "Roto"
+
 
 # --- FLUJO PRINCIPAL ---
 def main():
@@ -168,26 +179,31 @@ def main():
         # Actualización diámica de daño
         if err > args.threshold:
             errores_buffer.append(err)
+            print("error añadido al buffer")
             # Si excedemos el tamaño del buffer, sacamos el más viejo
             if len(errores_buffer) > WINDOW_SIZE:
                 errores_buffer.pop(0)
                 
         # Si tenemos suficientes valores en el buffer, calculamos err_max como percentil 95
         if len(errores_buffer) >= MIN_UPDATES_IN_WINDOW:
-            nuevo_err_max = np.percentile(errores_buffer, PERCENTILE)
-            # Solo actualizamos si el percentil es mayor al err_max actual
-            if nuevo_err_max < err_max:
-                err_max = float(nuevo_err_max)
+            nuevo_err_max = float(np.percentile(errores_buffer, PERCENTILE))
+            if abs(nuevo_err_max - err_max) / (err_max + 1e-6) > 0.05:  # cambio mayor al 5%
+                err_max = nuevo_err_max
                 print(f'[INFO] err_max actualizado por percentil {PERCENTILE}: {err_max:.5f}')
+
+
         
         # Cálculo del % de daño usando err_max
         if err <= args.threshold:
-           # pct = 0.0
+            pct = 0.0
         else:
             denom = max(err_max - args.threshold, 1e-6)
             pct = np.clip((err - args.threshold) / denom, 0, 1) * 100
         
-        print(f'Error: {err:.5f} | Daño estimado: {pct:6.2f}%')
+        
+        estado = clasificar_danio(pct)
+        print(f'Error: {err:.5f} | Daño estimado: {pct:6.2f}% | Estado: {estado}')
+
 
 if __name__ == '__main__':
     main()

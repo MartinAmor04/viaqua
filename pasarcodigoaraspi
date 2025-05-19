@@ -1,65 +1,53 @@
-# ---------------------------------------------------
-# Supongamos que llegamos aquí DESPUÉS del entrenamiento:
-#   - encoder, autoencoder, centroid, radio_motor ya están calculados.
-#   - args.threshold existe.
-# ---------------------------------------------------
+def main():
+    # parsear args: batch_size, threshold, percentil_radio…
+    # entrenar autoencoder y recolectar valid_latents…
+    # calcular centroid, distancias, radio_motor…
+    # ahora inferencia:
 
-# Umbral para filtrar ruidos externos (puedes ajustarlo dinámicamente)
-err_filtro_externo = args.threshold * 1.2
+    err_max = 1.0
+    # Definimos err_filtro_externo a partir de threshold
+    err_filtro_externo = args.threshold * 1.2
 
-# err_max inicia en 1.0
-err_max = 1.0
+    print('[INFO] Iniciando predicción con filtro combinado de latente + reconstrucción')
+    print(f'       radio_motor = {radio_motor:.5f}, err_filtro_externo = {err_filtro_externo:.5f}\n')
 
-print('[INFO] Iniciando predicción en tiempo real con filtro combinado:')
-print(f'       radio_motor = {radio_motor:.5f}, err_filtro_externo = {err_filtro_externo:.5f}')
-print('       1) Si dist_latente ≤ radio_motor → motor (sano o con fallo)')
-print('       2) Si dist_latente > radio_motor y err ≤ err_filtro_externo → RUIDO EXTERNO → descartar')
-print('       3) Si dist_latente > radio_motor y err > err_filtro_externo → MOTOR MUY DAÑADO → aceptar\n')
+    while True:
+        # 1) Grabar y preprocesar
+        s = record_audio()
+        feat = preprocess_signal(s).flatten()[np.newaxis, ...]  # (1, input_dim)
 
-while True:
-    # 1) Grabar y preprocesar el audio
-    s = record_audio()
-    feat = preprocess_signal(s).flatten()[np.newaxis, ...]  # shape = (1, input_dim)
+        # 2) Calcular latente y distancia
+        z = encoder.predict(feat, verbose=0)[0]
+        dist = np.linalg.norm(z - centroid)
 
-    # 2) Calcular latente y distancia al centroid
-    z = encoder.predict(feat, verbose=0)[0]  # (8,)
-    dist = np.linalg.norm(z - centroid)
+        # 3a) Caso “latente dentro del radio” → motor (sano o con fallo leve)
+        if dist <= radio_motor:
+            rec = autoencoder.predict(feat, verbose=0)
+            err = float(np.mean((feat - rec) ** 2))
+            if err > err_max:
+                err_max = err
+                print(f'[CALIB] Nuevo err_max = {err_max:.5f}')
+            if err <= args.threshold:
+                pct = 0.0
+            else:
+                denom = max(err_max - args.threshold, 1e-6)
+                pct = np.clip((err - args.threshold) / denom, 0, 1) * 100
+            print(f'[MOTOR] dist={dist:.5f} ≤ {radio_motor:.5f}, Error={err:.5f}, Daño={pct:6.2f}%\n')
+            continue
 
-    # 3) Caso A: dentro del radio → asumimos motor
-    if dist <= radio_motor:
-        # Llamamos al autoencoder para reconstruir y calcular err
+        # 3b) Caso “latente fuera del radio”: potencial ruido externo o motor muy roto
         rec = autoencoder.predict(feat, verbose=0)
         err = float(np.mean((feat - rec) ** 2))
-        # Actualizar err_max si corresponde
+
+        # 3b.1) Si err está por debajo de err_filtro_externo → RUÍDO EXTERNO → descartar
+        if err <= err_filtro_externo:
+            print(f'[FILTRO] dist={dist:.5f} > {radio_motor:.5f} y err={err:.5f} ≤ {err_filtro_externo:.5f} → RUÍDO EXTERNO\n')
+            continue
+
+        # 3b.2) Si err > err_filtro_externo → MOTOR MUY DAÑADO
         if err > err_max:
             err_max = err
             print(f'[CALIB] Nuevo err_max = {err_max:.5f}')
-        # Calcular % de daño
-        if err <= args.threshold:
-            pct = 0.0
-        else:
-            denom = max(err_max - args.threshold, 1e-6)
-            pct = np.clip((err - args.threshold) / denom, 0, 1) * 100
-        print(f'[MOTOR] dist={dist:.5f} ≤ {radio_motor:.5f}, Error={err:.5f}, Daño={pct:6.2f}%\n')
-        continue
-
-    # 4) Caso B: latente FUERA del radio_motor
-    #   4.1) Primero calculamos el error de reconstrucción
-    rec = autoencoder.predict(feat, verbose=0)
-    err = float(np.mean((feat - rec) ** 2))
-
-    #   4.2) Si err <= err_filtro_externo, descartamos como ruido externo
-    if err <= err_filtro_externo:
-        print(f'[FILTRO] dist={dist:.5f} > {radio_motor:.5f} y err={err:.5f} ≤ {err_filtro_externo:.5f} → RUÍDO EXTERNO\n')
-        continue
-
-    #   4.3) Si err > err_filtro_externo → mostramos como “motor muy dañado”
-    #         Primero actualizamos err_max si corresponde
-    if err > err_max:
-        err_max = err
-        print(f'[CALIB] Nuevo err_max = {err_max:.5f}')
-
-    #    Entonces calculamos % de daño (como motor dañado)
-    denom = max(err_max - args.threshold, 1e-6)
-    pct = np.clip((err - args.threshold) / denom, 0, 1) * 100
-    print(f'[MOTOR DAÑADO] dist={dist:.5f} > {radio_motor:.5f}, Error={err:.5f}, Daño={pct:6.2f}%\n')
+        denom = max(err_max - args.threshold, 1e-6)
+        pct = np.clip((err - args.threshold) / denom, 0, 1) * 100
+        print(f'[MOTOR DAÑADO] dist={dist:.5f} > {radio_motor:.5f}, Error={err:.5f}, Daño={pct:6.2f}%\n')

@@ -13,6 +13,6 @@ CREATE TABLE alert (
     machine_id INT, 
     date_time DATETIME, 
     alert_type VARCHAR(100), 
-    audio_record TEXT, 
+    audio_record LONGTEXT, 
     FOREIGN KEY (machine_id) REFERENCES machine(id)
 );

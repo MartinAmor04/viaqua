@@ -1,7 +1,10 @@
 # db_functions.py
 import mysql.connector
 import os
+from dotenv import load_dotenv
 
+
+# Load env variables
 load_dotenv() 
 
 MYSQL_HOST= os.getenv("DB_HOST")
@@ -18,10 +21,10 @@ def get_connection():
         database=MYSQL_NAME
     )
 
-def get_data():
+def get_alerts():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute(f"SELECT machine_id, public_id, date_time, machine_type, audio_record,  place, power,  alert_type FROM alert JOIN machine ON alert.machine_id=machine_id;")
+    cursor.execute(f"SELECT alert.id as id, machine_id, public_id, date_time, machine_type, audio_record,  place, power,  alert_type FROM alert JOIN machine ON alert.machine_id=machine_id;")
     results = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -34,4 +37,11 @@ def edit_alert(alert_id, new_alert_type):
     conn.commit()
     cursor.close()
     conn.close()
-print(get_data())
+
+def add_alert(machine_id, encoded_audio):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO alert (machine_id, date_time, alert_type, audio_record) VALUES (%s, NOW(), %s, );", (machine_id, 'No clasificado', encoded_audio))
+    conn.commit()
+    cursor.close()
+    conn.close()

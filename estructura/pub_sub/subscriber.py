@@ -5,18 +5,25 @@ from email.mime.text import MIMEText
 import smtplib
 from dotenv import load_dotenv
 import os
+import json
+
+import sys
+sys.path.append('../ui_curuxia/modules')
+from sql_queries import add_alert
 
 
 # === VARIABLES DE ENTORNO ===
 load_dotenv() 
 HIVE_USER = os.getenv("MQ_HIVE_USER")
 HIVE_PASSWORD=os.getenv("MQ_HIVE_PASSWORD")
+HIVE_BROKER=os.getenv("MQ_HIVE_BROKER")
+
 EMAIL_PASSWORD=os.getenv("EMAIL_PASSWORD")
 EMAIL_SENDER=os.getenv("EMAIL_SENDER")
 EMAIL_RECEIVER=os.getenv("EMAIL_RECEIVER")
 
 # === CONFIGURACIÓN DE HIVEMQ CLOUD ===
-MQTT_BROKER = "0adbb214459a4128995884f3f492115b.s1.eu.hivemq.cloud"
+MQTT_BROKER = HIVE_BROKER
 MQTT_PORT = 8883
 MQTT_TOPIC = "audio/alerts"
 MQTT_USER = HIVE_USER
@@ -30,8 +37,14 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     mensaje = msg.payload.decode()
-    print(f"Mensaje recibido en {msg.topic}: {mensaje}")
-    send_email("Nuevo mensaje en el Topic MQTT", mensaje)
+    mensaje_dict = json.loads(mensaje)
+    machine_id = mensaje_dict.get("machine_id")
+    audio_string = mensaje_dict.get("audio_record")
+
+    print(f"Mensaje recibido en {msg.topic}")
+    msg='Fallo de la máquina ' + machine_id
+    send_email("Nuevo mensaje en el Topic MQTT", "Ha")
+    add_alert(machine_id, audio_string)
 
 # === SEND MESSAGE FUNCTION ===
 def send_email(subject, body):
@@ -59,7 +72,6 @@ client.tls_set()  # TLS por defecto
 client.on_connect = on_connect
 client.on_message = on_message
 
-print("Conectando al broker...")
 client.connect(MQTT_BROKER, MQTT_PORT)
 client.loop_start()
 
@@ -67,5 +79,4 @@ try:
     while True:
         time.sleep(1)
 except KeyboardInterrupt:
-    print("Terminando...")
     client.loop_stop()

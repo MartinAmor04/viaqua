@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import librosa
 import wave
+import time
 import subprocess
 import io
 import os
@@ -61,9 +62,9 @@ def record_audio():
 def autoencoder_model(input_dim):
     inp = Input(shape=(input_dim,))
     x = Dense(64, activation='relu')(inp)
-    x = Dense(16, activation='relu')(x)
-    bottleneck = Dense(8, activation='relu')(x)
-    x = Dense(16, activation='relu')(bottleneck)
+    x = Dense(32, activation='relu')(x)
+    bottleneck = Dense(16, activation='relu')(x)
+    x = Dense(32, activation='relu')(bottleneck)
     x = Dense(64, activation='relu')(x)
     decoded = Dense(input_dim, activation='sigmoid')(x)
     model = Model(inp, decoded)
@@ -163,6 +164,7 @@ def main():
 
         estado = clasificar_danio(pct)
         print(f'Error: {err:.5f} | Daño estimado: {pct:6.2f}% | Estado: {estado}')
+        time.sleep(5)
 
 if __name__ == '__main__':
     main()

@@ -2,7 +2,12 @@ import streamlit as st
 import pandas as pd
 from modules.sql_queries import get_alerts, edit_alert
 from modules.audio_conversion import base64_to_audio
-
+from streamlit_extras.card import card
+from streamlit_extras.badges import badge 
+from streamlit_extras.great_tables import great_tables 
+from streamlit_extras.bottom_container import bottom 
+from streamlit_extras.row import row 
+import numpy as np
 st.set_page_config(
     page_title="CuruxIA",  
     page_icon="./assets/img/favicon.png", 
@@ -47,6 +52,7 @@ st.divider()
 st.subheader("Xestión de alertas")
 
 with st.container():
+
     col1, col2, col3, col4, col5, col6 = st.columns([2, 2, 2, 2, 2, 2])
     with col1:
         st.markdown('<div class="header-row">Máquina</div>', unsafe_allow_html=True)
@@ -89,3 +95,13 @@ with st.container():
                     st.rerun()
 
 st.divider()
+card(text='olaa', title="Tarjeta con Contenedor")
+badge(type="streamlit", url="https://plost.streamlitapp.com")
+
+
+st.write("This is the main container")
+
+with bottom():
+    st.write("This is the bottom container")
+    st.text_input("This is a text input in the bottom container")
+

@@ -2,6 +2,12 @@ import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 import os
 import base64
+import numpy as np
+import wave
+import subprocess
+import io
+
+
 # === VARIABLES DE ENTORNO ===
 load_dotenv()
 HIVE_USER = os.getenv("MQ_HIVE_USER")
@@ -16,10 +22,8 @@ MQTT_USER = HIVE_USER
 MQTT_PASSWORD = HIVE_PASSWORD
 
 
-
-def audio_to_base64(audio_path):
-    with open(audio_path, "rb") as audio_file:
-        encoded_audio = base64.b64encode(audio_file.read()).decode("utf-8")
+def audio_to_base64(audio_file):
+    encoded_audio = base64.b64encode(audio_file).decode("utf-8")
     return encoded_audio
 
 def get_machine_id(path='machine.conf'):
@@ -29,21 +33,53 @@ def get_machine_id(path='machine.conf'):
                 return line.strip().split('=')[1]
     raise ValueError("No se encontró 'public_id=' en el archivo")
 
-# === CALLBACKS ===
-def on_connect(client, userdata, flags, rc):
-    print("Conectado al broker con código:", rc)
-    audio_string=audio_to_base64('sample-3s.wav')
-    machine_id=get_machine_id()
-    message = f'{{ "machine_id":"{machine_id}", "audio_record":"{audio_string}" }}'    
-    client.publish(MQTT_TOPIC, message)
-    print("Mensaje enviado.")
-    client.disconnect()
+def record_audio():
+    print("[INFO] Grabando muestra de audio...")
+    cmd = [
+        'arecord -l',
+        '-D', 'plughw:2',
+        '-c1',              # mono
+        '-r', str(48000),
+        '-f', 'S32_LE',
+        '-t', 'wav',
+        '-d', str(int(5)),
+        '-q'                # silencio en consola
+    ]
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    raw_audio = proc.stdout.read()  # Lee toda la salida
+    proc.wait()
 
-# === CLIENTE MQTT ===
-client = mqtt.Client()
-client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
-client.tls_set() 
-client.on_connect = on_connect
+    # Leer WAV desde bytes
+    # wav_file = io.BytesIO(raw_audio)
+    # with wave.open(wav_file, 'rb') as wf:
+    #     frames = wf.readframes(wf.getnframes())
+    #     audio_np = np.frombuffer(frames, dtype=np.int32)
 
-client.connect(MQTT_BROKER, MQTT_PORT)
-client.loop_forever()
+    return raw_audio
+
+
+def send_audio_message(audio_string):
+    # === CALLBACKS ===
+    def on_connect(client, userdata, flags, rc):
+        print("Conectado al broker con código:", rc)
+        machine_id = get_machine_id()
+        audio_string = userdata["audio_string"]
+        message = f'{{ "machine_id":"{machine_id}", "audio_record":"{audio_string}" }}'
+        client.publish(MQTT_TOPIC, message)
+        print("Mensaje enviado.")
+        client.disconnect()
+cat 
+    client = mqtt.Client(userdata={"audio_string": audio_string})
+    client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
+    client.tls_set(cert_reqs=ssl.CERT_REQUIRED)
+    client.on_connect = on_connect
+
+    client.connect(MQTT_BROKER, MQTT_PORT)
+    client.loop_forever()
+
+def send_alert():
+    wav_audio=record_audio()
+    audio_string=audio_to_base64(wav_audio)
+    send_audio_message(audio_string)
+
+send_alert()

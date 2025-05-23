@@ -17,7 +17,7 @@ conn = mysql.connector.connect(
 )
 cursor = conn.cursor()
 
-script_files = ["db_structure.sql", "data_insertion.sql"]  
+script_files = ["db_structure.sql"]  
 
 for script_file in script_files:
     with open(script_file, "r") as file:

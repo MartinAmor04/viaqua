@@ -32,7 +32,6 @@ valores = [
     (1, "No clasificado", base64_audio),
     (1,"Fallo eléctrico", base64_audio)
 ]
-machine_id
 # Ejecutar la consulta
 cursor.executemany(query, valores)
 

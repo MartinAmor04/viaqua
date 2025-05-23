@@ -426,7 +426,6 @@ def convertir_a_tflite(model, path):
     model.save(MODEL_CHECKPOINT)
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    converter.target_spec.supported_types = [tf.float32]
     tflite_model = converter.convert()
     with open(path, 'wb') as f:
         f.write(tflite_model)

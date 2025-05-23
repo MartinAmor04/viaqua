@@ -181,7 +181,7 @@ class ImprovedFaultDetector:
     def calculate_anomaly_score(self, signal, autoencoder_error):
         """Cálculo de anomalía mejorado con mayor sensibilidad"""
         features = self.extract_enhanced_features(signal)
-        vector = np.array(list(features.values()), dtype=np.float16).reshape(1, -1)
+        vector = np.array(list(features.values()), dtype=np.float32).reshape(1, -1)
         vector = np.nan_to_num(vector, nan=0.0, posinf=1e6, neginf=-1e6)
 
         normalized = self.scalers['features'].transform(vector)
@@ -353,7 +353,7 @@ class ImprovedFaultDetector:
 # Mantener el resto de funciones auxiliares igual
 def preprocess_signal(signal):
     """Preprocesa la señal para el autoencoder"""
-    s = signal.astype(np.float16)
+    s = signal.astype(np.float32)
     s /= (np.max(np.abs(s)) + 1e-6)
     S = librosa.feature.melspectrogram(y=s, sr=SAMPLING_RATE, n_mels=N_MELS)
     S_dB = librosa.power_to_db(S, ref=np.max)
@@ -364,7 +364,7 @@ def preprocess_signal(signal):
         S_dB = S_dB[:, :FIXED_FRAMES]
     mn, mx = S_dB.min(), S_dB.max()
     norm = (S_dB - mn) / (mx - mn + 1e-6)
-    return norm.flatten().astype(np.float16)
+    return norm.flatten().astype(np.float32)
 
 
 def record_audio():
@@ -378,7 +378,7 @@ def record_audio():
     proc.wait()
     wav = wave.open(io.BytesIO(raw), 'rb')
     frames = wav.readframes(wav.getnframes())
-    return np.frombuffer(frames, dtype=np.int16).astype(np.float16)
+    return np.frombuffer(frames, dtype=np.int16).astype(np.float32)
 
 
 def autoencoder_model(input_dim):
@@ -426,7 +426,7 @@ def convertir_a_tflite(model, path):
     model.save(MODEL_CHECKPOINT)
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    converter.target_spec.supported_types = [tf.float16]
+    converter.target_spec.supported_types = [tf.float32]
     tflite_model = converter.convert()
     with open(path, 'wb') as f:
         f.write(tflite_model)
@@ -559,7 +559,7 @@ def main():
 
             # Grabar y procesar audio
             sig = record_audio()
-            X_proc = preprocess_signal(sig)[None, :].astype(np.float16)
+            X_proc = preprocess_signal(sig)[None, :].astype(np.float32)
 
             # Obtener error del autoencoder
             interpreter.set_tensor(inp_d['index'], X_proc)

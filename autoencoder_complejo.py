@@ -20,9 +20,9 @@ from sklearn.ensemble import IsolationForest
 from sklearn.covariance import EllipticEnvelope
 from scipy import stats
 from collections import deque
-import warnings
+#import warnings
 
-warnings.filterwarnings('ignore')
+#warnings.filterwarnings('ignore')
 
 # --- CONFIGURACIÓN OPTIMIZADA ---
 N_MELS = 128
@@ -128,6 +128,7 @@ class ImprovedFaultDetector:
                   f"MAD: {mad:.6f}, P90: {self.ae_error_stats['percentile_90']:.6f}")
 
         # Extracción de características en paralelo
+        print("[INFO] Extrayendo características...")
         with ThreadPoolExecutor(max_workers=4) as executor:
             features_list = list(executor.map(self.extract_enhanced_features, healthy_signals))
 
@@ -138,10 +139,12 @@ class ImprovedFaultDetector:
         normalized_features = self.scalers['features'].fit_transform(features_array)
 
         # Entrenamiento de detectores de anomalías
+        print("[INFO] Comienza entrenamiento Isolation Forest...")
         self.anomaly_detectors['isolation_forest'] = IsolationForest(
             contamination=0.1, random_state=42, n_estimators=100, max_samples=512,n_jobs=-1
         ).fit(normalized_features)
 
+        print("[INFO] Comienza entrenamiento Elliptic Envelope...")
         self.anomaly_detectors['elliptic_envelope'] = EllipticEnvelope(
             contamination=0.1, random_state=42, support_fraction=0.7
         ).fit(normalized_features)
@@ -158,6 +161,7 @@ class ImprovedFaultDetector:
         }
 
         # Cálculo del umbral dinámico
+        print("[INFO] Calculando umbral dinámico...")
         initial_scores = []
         for signal in healthy_signals[:10]:
             features = self.extract_enhanced_features(signal)

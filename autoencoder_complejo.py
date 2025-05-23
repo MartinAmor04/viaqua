@@ -141,12 +141,12 @@ class ImprovedFaultDetector:
         # Entrenamiento de detectores de anomalías
         print("[INFO] Comienza entrenamiento Isolation Forest...")
         self.anomaly_detectors['isolation_forest'] = IsolationForest(
-            contamination=0.1, random_state=42, n_estimators=100, max_samples=512,n_jobs=-1
+            contamination='auto', random_state=42, n_estimators=100, max_samples=512,n_jobs=-1
         ).fit(normalized_features)
 
         print("[INFO] Comienza entrenamiento Elliptic Envelope...")
         self.anomaly_detectors['elliptic_envelope'] = EllipticEnvelope(
-            contamination='auto', random_state=42, support_fraction=0.7
+            contamination=0.005, random_state=42, support_fraction=0.7
         ).fit(normalized_features)
 
         # Estadísticas de línea base

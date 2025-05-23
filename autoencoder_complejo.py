@@ -146,7 +146,7 @@ class ImprovedFaultDetector:
 
         print("[INFO] Comienza entrenamiento Elliptic Envelope...")
         self.anomaly_detectors['elliptic_envelope'] = EllipticEnvelope(
-            contamination=0.1, random_state=42, support_fraction=0.7
+            contamination='auto', random_state=42, support_fraction=0.7
         ).fit(normalized_features)
 
         # Estadísticas de línea base

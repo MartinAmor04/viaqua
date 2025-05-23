@@ -112,72 +112,66 @@ class ImprovedFaultDetector:
 
         if ae_errors is not None:
             self.baseline_ae_errors = ae_errors
-            # Usar estimadores robustos para evitar outliers
-            robust_mean = np.median(ae_errors)
-            robust_std = np.median(np.abs(ae_errors - robust_mean)) * 1.4826  # MAD
+            # Estadísticas robustas usando mediana y MAD
+            median = np.median(ae_errors)
+            mad = np.median(np.abs(ae_errors - median)) * 1.4826
 
             self.ae_error_stats = {
-                'mean': robust_mean,
-                'std': robust_std,
+                'mean': median,
+                'std': mad,
                 'percentile_75': np.percentile(ae_errors, 75),
                 'percentile_90': np.percentile(ae_errors, 90),
                 'percentile_95': np.percentile(ae_errors, 95)
             }
-            print(f"[INFO] Stats AE robustas - Mediana: {robust_mean:.6f}, "
-                  f"MAD: {robust_std:.6f}, P90: {self.ae_error_stats['percentile_90']:.6f}")
 
-        # Extraer características mejoradas
-        all_features=[]
-        # Extraer características mejoradas
+            print(f"[INFO] Stats AE robustas - Mediana: {median:.6f}, "
+                  f"MAD: {mad:.6f}, P90: {self.ae_error_stats['percentile_90']:.6f}")
+
+        # Extracción de características en paralelo
         with ThreadPoolExecutor(max_workers=4) as executor:
             features_list = list(executor.map(self.extract_enhanced_features, healthy_signals))
-        all_features = [list(feats.values()) for feats in features_list]
 
-        features_array = np.array(all_features)
+        features_array = np.array([list(f.values()) for f in features_list])
 
-        # Usar RobustScaler para ser menos sensible a outliers
+        # Normalización robusta
         self.scalers['features'] = RobustScaler()
         normalized_features = self.scalers['features'].fit_transform(features_array)
 
-        # Detectores de anomalías más sensibles
+        # Entrenamiento de detectores de anomalías
         self.anomaly_detectors['isolation_forest'] = IsolationForest(
-            contamination=0.1,  # Más permisivo para capturar más anomalías
-            random_state=42,
-            n_estimators=100,
-            max_samples='auto'
-        )
-        self.anomaly_detectors['isolation_forest'].fit(normalized_features)
+            contamination=0.1, random_state=42, n_estimators=100, max_samples='auto'
+        ).fit(normalized_features)
 
         self.anomaly_detectors['elliptic_envelope'] = EllipticEnvelope(
-            contamination=0.1,
-            random_state=42,
-            support_fraction=0.7  # Más restrictivo en el soporte
-        )
-        self.anomaly_detectors['elliptic_envelope'].fit(normalized_features)
+            contamination=0.1, random_state=42, support_fraction=0.7
+        ).fit(normalized_features)
 
-        # Estadísticas robustas de línea base
+        # Estadísticas de línea base
+        medians = np.median(normalized_features, axis=0)
+        mads = np.median(np.abs(normalized_features - medians), axis=0)
+        feature_names = list(self.extract_enhanced_features(healthy_signals[0]).keys())
+
         self.baseline_stats = {
-            'feature_medians': np.median(normalized_features, axis=0),
-            'feature_mads': np.median(np.abs(normalized_features - np.median(normalized_features, axis=0)), axis=0),
-            'feature_names': list(self.extract_enhanced_features(healthy_signals[0]).keys())
+            'feature_medians': medians,
+            'feature_mads': mads,
+            'feature_names': feature_names
         }
 
-        # Establecer umbral dinámico inicial
+        # Cálculo del umbral dinámico
         initial_scores = []
-        for i in range(min(10, len(healthy_signals))):
-            features = self.extract_enhanced_features(healthy_signals[i])
-            feature_vector = np.array(list(features.values())).reshape(1, -1)
-            normalized = self.scalers['features'].transform(feature_vector)
+        for signal in healthy_signals[:10]:
+            features = self.extract_enhanced_features(signal)
+            vector = np.array(list(features.values())).reshape(1, -1)
+            normalized = self.scalers['features'].transform(vector)
 
             iso_score = self.anomaly_detectors['isolation_forest'].decision_function(normalized)[0]
             ell_score = self.anomaly_detectors['elliptic_envelope'].decision_function(normalized)[0]
 
-            combined_score = max(0, (-iso_score + 0.2) / 0.8) * 0.5 + max(0, (-ell_score + 1) / 4) * 0.5
-            initial_scores.append(combined_score)
+            score = max(0, (-iso_score + 0.2) / 0.8) * 0.5 + max(0, (-ell_score + 1) / 4) * 0.5
+            initial_scores.append(score)
 
         self.dynamic_threshold = np.mean(initial_scores) + 2 * np.std(initial_scores)
         print(f"[INFO] Umbral dinámico inicial: {self.dynamic_threshold:.3f}")
-
         print(f"[INFO] Línea base establecida con {len(healthy_signals)} muestras")
 
     def calculate_anomaly_score(self, signal, autoencoder_error):
@@ -481,7 +475,7 @@ def main():
 
     # Entrenar autoencoder
     model = autoencoder_model(input_dim)
-    cb_ckpt = ModelCheckpoint(MODEL_CHECKPOINT, monitor='val_loss', save_best_only=True, verbose=1)
+    cb_ckpt = ModelCheckpoint(MODEL_CHECKPOINT, monitor='val_loss', save_best_only=True, verbose=0)
     cb_es = EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True, verbose=1)
     cb_rlr = ReduceLROnPlateau(monitor='val_loss', factor=0.7, patience=8, min_lr=1e-6, verbose=1)
 

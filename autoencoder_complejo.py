@@ -139,7 +139,7 @@ class ImprovedFaultDetector:
 
         # Entrenamiento de detectores de anomalías
         self.anomaly_detectors['isolation_forest'] = IsolationForest(
-            contamination=0.1, random_state=42, n_estimators=100, max_samples='auto'
+            contamination=0.1, random_state=42, n_estimators=100, max_samples=512,n_jobs=-1
         ).fit(normalized_features)
 
         self.anomaly_detectors['elliptic_envelope'] = EllipticEnvelope(
@@ -476,7 +476,7 @@ def main():
     # Entrenar autoencoder
     model = autoencoder_model(input_dim)
     cb_ckpt = ModelCheckpoint(MODEL_CHECKPOINT, monitor='val_loss', save_best_only=True, verbose=0)
-    cb_es = EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True, verbose=1)
+    cb_es = EarlyStopping(monitor='val_loss', patience=12, restore_best_weights=True, verbose=1)
     cb_rlr = ReduceLROnPlateau(monitor='val_loss', factor=0.7, patience=8, min_lr=1e-6, verbose=1)
 
     print('[INFO] Entrenando autoencoder mejorado...')

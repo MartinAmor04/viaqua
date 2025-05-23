@@ -177,97 +177,79 @@ class ImprovedFaultDetector:
     def calculate_anomaly_score(self, signal, autoencoder_error):
         """Cálculo de anomalía mejorado con mayor sensibilidad"""
         features = self.extract_enhanced_features(signal)
-        feature_vector = np.array(list(features.values())).reshape(1, -1)
+        vector = np.array(list(features.values()), dtype=np.float16).reshape(1, -1)
+        vector = np.nan_to_num(vector, nan=0.0, posinf=1e6, neginf=-1e6)
 
-        # Manejar valores NaN o infinitos
-        feature_vector = np.nan_to_num(feature_vector, nan=0.0, posinf=1e6, neginf=-1e6)
+        normalized = self.scalers['features'].transform(vector)
 
-        # Normalizar características
-        normalized_features = self.scalers['features'].transform(feature_vector)
+        # Scoring de modelos
+        iso_score = self.anomaly_detectors['isolation_forest'].decision_function(normalized)[0]
+        ell_score = self.anomaly_detectors['elliptic_envelope'].decision_function(normalized)[0]
 
-        # Detectores de anomalías con scoring mejorado
-        isolation_score = self.anomaly_detectors['isolation_forest'].decision_function(normalized_features)[0]
-        elliptic_score = self.anomaly_detectors['elliptic_envelope'].decision_function(normalized_features)[0]
+        iso_prob = max(0, min(1, (-iso_score + 0.1) / 0.6))
+        ell_prob = max(0, min(1, (-ell_score + 0.5) / 2.5))
 
-        # Convertir a probabilidades con mayor sensibilidad
-        isolation_prob = max(0, min(1, (-isolation_score + 0.1) / 0.6))  # Más sensible
-        elliptic_prob = max(0, min(1, (-elliptic_score + 0.5) / 2.5))  # Más sensible
-
-        # Score de autoencoder mejorado
+        # Autoencoder
         ae_prob = 0
         if hasattr(self, 'ae_error_stats') and self.ae_error_stats:
-            # Usar percentiles en lugar de z-score para mayor robustez
-            if autoencoder_error > self.ae_error_stats['percentile_95']:
+            thresholds = self.ae_error_stats
+            if autoencoder_error > thresholds['percentile_95']:
                 ae_prob = 0.9
-            elif autoencoder_error > self.ae_error_stats['percentile_90']:
+            elif autoencoder_error > thresholds['percentile_90']:
                 ae_prob = 0.7
-            elif autoencoder_error > self.ae_error_stats['percentile_75']:
+            elif autoencoder_error > thresholds['percentile_75']:
                 ae_prob = 0.4
             else:
-                # Z-score suavizado
-                z_score = (autoencoder_error - self.ae_error_stats['mean']) / (self.ae_error_stats['std'] + 1e-8)
-                ae_prob = max(0, min(1, (z_score - 0.5) / 2))  # Más sensible
+                z = (autoencoder_error - thresholds['mean']) / (thresholds['std'] + 1e-8)
+                ae_prob = max(0, min(1, (z - 0.5) / 2))
 
-        # Distancia robusta usando MAD
-        baseline_median = self.baseline_stats['feature_medians']
-        baseline_mad = self.baseline_stats['feature_mads']
-        baseline_mad = np.where(baseline_mad == 0, 1e-6, baseline_mad)
+        # Distancia robusta
+        med = self.baseline_stats['feature_medians']
+        mad = np.where(self.baseline_stats['feature_mads'] == 0, 1e-6, self.baseline_stats['feature_mads'])
+        robust_dist = np.median(np.abs((normalized[0] - med) / mad))
+        robust_prob = max(0, min(1, (robust_dist - 1) / 3))
 
-        robust_distance = np.median(np.abs((normalized_features[0] - baseline_median) / baseline_mad))
-        robust_prob = max(0, min(1, (robust_distance - 1) / 3))  # Más sensible
+        # Temporal
+        freq = features.get('fundamental_frequency', 0)
+        energy = features.get('rms_mean', 0)
+        spectral = features.get('spectral_centroid_mean', 0)
 
-        # Detectar cambios temporales
+        self.frequency_buffer.append(freq)
+        self.energy_buffer.append(energy)
+        self.spectral_buffer.append(spectral)
+
         temporal_prob = 0
-        current_freq = features.get('fundamental_frequency', 0)
-        current_energy = features.get('rms_mean', 0)
-        current_spectral = features.get('spectral_centroid_mean', 0)
-
-        # Agregar a buffers
-        self.frequency_buffer.append(current_freq)
-        self.energy_buffer.append(current_energy)
-        self.spectral_buffer.append(current_spectral)
-
-        # Detectar cambios significativos en las últimas mediciones
         if len(self.frequency_buffer) >= 5:
-            freq_var = np.var(list(self.frequency_buffer)[-5:])
-            energy_var = np.var(list(self.energy_buffer)[-5:])
-            spectral_var = np.var(list(self.spectral_buffer)[-5:])
+            def var_ratio(buffer):
+                recent = list(buffer)[-5:]
+                baseline = list(buffer)[:-2] if len(buffer) > 7 else recent
+                return np.var(recent) / (np.var(baseline) + 1e-8) if np.var(baseline) > 0 else 0
 
-            # Normalizar variaciones
-            freq_baseline_var = np.var(list(self.frequency_buffer)[:-2]) if len(self.frequency_buffer) > 7 else freq_var
-            energy_baseline_var = np.var(list(self.energy_buffer)[:-2]) if len(self.energy_buffer) > 7 else energy_var
-            spectral_baseline_var = np.var(list(self.spectral_buffer)[:-2]) if len(
-                self.spectral_buffer) > 7 else spectral_var
+            temporal_prob = max(0, min(1, (max(
+                var_ratio(self.frequency_buffer),
+                var_ratio(self.energy_buffer),
+                var_ratio(self.spectral_buffer)
+            ) - 1.5) / 3))
 
-            freq_change = freq_var / (freq_baseline_var + 1e-8) if freq_baseline_var > 0 else 0
-            energy_change = energy_var / (energy_baseline_var + 1e-8) if energy_baseline_var > 0 else 0
-            spectral_change = spectral_var / (spectral_baseline_var + 1e-8) if spectral_baseline_var > 0 else 0
+        # Score combinado
+        score = (
+                        0.3 * iso_prob +
+                        0.25 * ell_prob +
+                        0.2 * robust_prob +
+                        0.15 * ae_prob +
+                        0.1 * temporal_prob
+                ) * self.detection_sensitivity
 
-            temporal_prob = max(0, min(1, (max(freq_change, energy_change, spectral_change) - 1.5) / 3))
-
-        # Combinar scores con pesos optimizados para mayor sensibilidad
-        combined_score = (
-                0.3 * isolation_prob +
-                0.25 * elliptic_prob +
-                0.2 * robust_prob +
-                0.15 * ae_prob +
-                0.1 * temporal_prob
-        )
-
-        # Aplicar factor de sensibilidad
-        combined_score *= self.detection_sensitivity
-        combined_score = min(1.0, combined_score)  # Asegurar que no exceda 1.0
-
-        return combined_score, {
-            'isolation': isolation_prob,
-            'elliptic': elliptic_prob,
+        return min(1.0, score), {
+            'isolation': iso_prob,
+            'elliptic': ell_prob,
             'robust_distance': robust_prob,
             'autoencoder': ae_prob,
             'temporal_change': temporal_prob,
             'ae_raw': autoencoder_error,
-            'fundamental_freq': current_freq,
-            'spectral_centroid': current_spectral,
-            'rms_energy': current_energy,
+            'fundamental_freq': freq,
+            'spectral_centroid': spectral,
+            'rms_energy': energy,
             'crest_factor': features.get('crest_factor', 0),
             'thd': features.get('thd', 0),
             'periodicity': features.get('periodicity_strength', 0)

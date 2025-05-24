@@ -20,6 +20,8 @@ from sklearn.ensemble import IsolationForest
 from sklearn.covariance import EllipticEnvelope
 from scipy import stats
 from collections import deque
+from scipy.signal import welch
+
 #import warnings
 
 #warnings.filterwarnings('ignore')
@@ -63,13 +65,14 @@ class ImprovedFaultDetector:
         self.energy_buffer = deque(maxlen=20)
         self.spectral_buffer = deque(maxlen=20)
 
-    def extract_enhanced_features(signal, sr=16000):
+    def extract_enhanced_features(self, signal, sr=SAMPLING_RATE):
+        """
+        Extrae múltiples características que luego usa calculate_anomaly_score.
+        """
         nperseg = 1024
 
-        # Calcular PSD solo una vez
+        # 1) PSD de Welch
         freqs, psd = welch(signal, fs=sr, nperseg=nperseg)
-
-        # Bandas predefinidas
         bands = np.array([
             [0, 60],
             [60, 250],
@@ -78,10 +81,7 @@ class ImprovedFaultDetector:
             [6000, 8000]
         ])
         band_names = ["sub_bajo", "bajo", "medio", "alto", "muy_alto"]
-
         features = {}
-
-        # Convertimos freqs y psd en arrays numpy para indexación eficiente
         freqs = np.asarray(freqs)
         psd = np.asarray(psd)
 
@@ -93,16 +93,33 @@ class ImprovedFaultDetector:
                 band_power = 0.0
             features[f"{name}_power"] = band_power
 
-        # ZCR eficiente (evita signo nulo)
-        signs = np.sign(signal)
-        signs[signs == 0] = 1
-        zcr = np.mean(signs[1:] != signs[:-1])
+        # 2) ZCR medio
+        zcr_values = librosa.feature.zero_crossing_rate(signal)[0]
+        features["zcr"] = float(np.mean(zcr_values))
 
-        # RMS
-        rms = np.sqrt(np.mean(np.square(signal), dtype=np.float32))
+        # 3) RMS medio
+        rms_values = librosa.feature.rms(y=signal)[0]
+        rms_mean = float(np.mean(rms_values))
+        features["rms_mean"] = rms_mean
 
-        features["zcr"] = zcr
-        features["rms"] = rms
+        # 4) Centroide espectral medio
+        centroid_values = librosa.feature.spectral_centroid(y=signal, sr=sr)[0]
+        features["spectral_centroid_mean"] = float(np.mean(centroid_values))
+
+        # 5) Frecuencia fundamental (YIN)
+        try:
+            f0_values = librosa.yin(signal, fmin=50, fmax=sr/2)
+            features["fundamental_frequency"] = float(np.mean(f0_values))
+        except:
+            features["fundamental_frequency"] = 0.0
+
+        # 6) Crest factor
+        peak = float(np.max(np.abs(signal)) + 1e-12)
+        features["crest_factor"] = peak / (rms_mean + 1e-12)
+
+        # 7) THD y periodicidad (dejamos 0 si no los calculamos)
+        features["thd"] = 0.0
+        features["periodicity_strength"] = 0.0
 
         return features
 
@@ -386,11 +403,11 @@ def autoencoder_model(input_dim):
     inp = Input(shape=(input_dim,))
 
     # Encoder más profundo
-    x = Dense(128, activation='relu')(inp)
+    x = Dense(160, activation='relu')(inp)
     x = BatchNormalization()(x)
     x = Dropout(0.15)(x)
 
-    x = Dense(64, activation='relu')(x)
+    x = Dense(32, activation='relu')(x)
     x = BatchNormalization()(x)
     x = Dropout(0.15)(x)
 

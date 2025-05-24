@@ -403,38 +403,34 @@ def autoencoder_model(input_dim):
     inp = Input(shape=(input_dim,))
 
     # Encoder más profundo
-    x = Dense(160, activation='relu')(inp)
-    x = BatchNormalization()(x)
-    x = Dropout(0.15)(x)
-
-    x = Dense(32, activation='relu')(x)
-    x = BatchNormalization()(x)
-    x = Dropout(0.15)(x)
-
-    x = Dense(32, activation='relu')(x)
+    x = Dense(224, activation='relu')(inp)
     x = BatchNormalization()(x)
     x = Dropout(0.1)(x)
 
-    # Bottleneck más pequeño para forzar compresión
-    bottleneck = Dense(16, activation='relu')(x)
-
-    # Decoder simétrico
-    x = Dense(32, activation='relu')(bottleneck)
+    x = Dense(112, activation='relu')(x)
     x = BatchNormalization()(x)
-    x = Dropout(0.1)(x)
 
     x = Dense(64, activation='relu')(x)
     x = BatchNormalization()(x)
-    x = Dropout(0.15)(x)
 
-    x = Dense(128, activation='relu')(x)
+    # Bottleneck más pequeño para forzar compresión
+    bottleneck = Dense(24, activation='relu')(x)
+
+    # Decoder simétrico
+    x = Dense(64, activation='relu')(bottleneck)
     x = BatchNormalization()(x)
-    x = Dropout(0.15)(x)
+
+    x = Dense(112, activation='relu')(x)
+    x = BatchNormalization()(x)
+
+    x = Dense(224, activation='relu')(x)
+    x = BatchNormalization()(x)
+    x = Dropout(0.1)(x)
 
     output = Dense(input_dim, activation='sigmoid')(x)
 
     model = Model(inp, output)
-    model.compile(optimizer=Adam(learning_rate=5e-4), loss='mse', metrics=['mae'])
+    model.compile(optimizer=Adam(learning_rate=0.0003205205517146071), loss='mse', metrics=['mae'])
     return model
 
 

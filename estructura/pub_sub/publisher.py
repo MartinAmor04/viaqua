@@ -1,3 +1,4 @@
+import ssl
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 import os
@@ -36,8 +37,8 @@ def get_machine_id(path='machine.conf'):
 def record_audio():
     print("[INFO] Grabando muestra de audio...")
     cmd = [
-        'arecord -l',
-        '-D', 'plughw:2',
+        'arecord',
+        '-D', 'plughw:1',
         '-c1',              # mono
         '-r', str(48000),
         '-f', 'S32_LE',
@@ -68,7 +69,7 @@ def send_audio_message(audio_string):
         client.publish(MQTT_TOPIC, message)
         print("Mensaje enviado.")
         client.disconnect()
-cat 
+    
     client = mqtt.Client(userdata={"audio_string": audio_string})
     client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
     client.tls_set(cert_reqs=ssl.CERT_REQUIRED)

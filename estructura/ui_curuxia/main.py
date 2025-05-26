@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from modules.sql_queries import get_alerts
+from modules.audio_conversion import base64_to_audio
 
 st.set_page_config(
     page_title="CuruxIA",
@@ -46,7 +47,7 @@ with colf3:
 # Aplicar filtros
 alertas_filtradas = get_alerts(estado_filtro)
 df_filtrado = pd.DataFrame(alertas_filtradas)
-
+print(df_filtrado.columns)
 if mes_filtro != "Todos":
     df_filtrado = df_filtrado[pd.to_datetime(df_filtrado["date_time"]).dt.month == int(mes_filtro)]
 if tipo_filtro != "Todos":
@@ -101,6 +102,8 @@ for index, row in df_filtrado.iterrows():
         col_audio, col_editar = st.columns(2)
         col_audio.button("🔊", key=f"audio_{row['ID Máquina']}_{index}")
         col_editar.button("✏️", key=f"edit_{row['ID Máquina']}_{index}")
+        st.audio(base64_to_audio(row['audio_record']), format="wav")
+
 
     st.markdown("</tr>", unsafe_allow_html=True)
 

@@ -1,22 +1,23 @@
-import numpy as np
 import pickle
+import numpy as np
+import librosa
+import wave
+import subprocess
+import io
 import logging
+import noisereduce as nr
 import os
-
-# Configuración de hilos para TensorFlow
-os.environ['TF_NUM_INTRAOP_THREADS'] = '4'
-os.environ['TF_NUM_INTEROP_THREADS'] = '4'
-
-import tensorflow as tf
+from collections import deque
+from scipy.signal import welch
+from concurrent.futures import ProcessPoolExecutor
 from sklearn.preprocessing import RobustScaler, MinMaxScaler
 from sklearn.ensemble import IsolationForest
 from sklearn.covariance import EllipticEnvelope
-from scipy import stats
-from collections import deque
-from concurrent.futures import ProcessPoolExecutor
-import librosa
-from scipy.signal import welch
-import noisereduce as nr
+import tensorflow as tf
+# Configuración de hilos
+import os
+os.environ['TF_NUM_INTRAOP_THREADS'] = '4'
+os.environ['TF_NUM_INTEROP_THREADS'] = '4'
 
 # Constantes globales
 N_MELS = 128
@@ -37,6 +38,31 @@ logging.basicConfig(
     format='[%(asctime)s] %(levelname)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
+
+
+def preprocess_signal(signal):
+    """Convierte la señal mono en vector de mel-spectrograma aplanado."""
+    s = signal.astype(np.float32)
+    if np.max(np.abs(s)) > 0:
+        s /= (np.max(np.abs(s)) + 1e-6)
+
+    S = librosa.feature.melspectrogram(
+        y=s,
+        sr=SAMPLING_RATE,
+        n_mels=N_MELS,
+        hop_length=HOP_LENGTH,
+        n_fft=2048
+    )
+    S_dB = librosa.power_to_db(S, ref=np.max)
+    if S_dB.shape[1] < FIXED_FRAMES:
+        pad_width = FIXED_FRAMES - S_dB.shape[1]
+        S_dB = np.pad(S_dB, ((0, 0), (0, pad_width)), mode='constant')
+    else:
+        S_dB = S_dB[:, :FIXED_FRAMES]
+
+    mn, mx = S_dB.min(), S_dB.max()
+    norm = (S_dB - mn) / (mx - mn + 1e-6)
+    return norm.flatten().astype(np.float32)
 
 
 def extract_enhanced_features_helper(args):
@@ -205,7 +231,7 @@ class ImprovedFaultDetector:
         normalized_features = self.scalers['features'].transform(features_array)
 
         iso_clf = IsolationForest(
-            contamination=0.01, random_state=42, n_estimators=100, max_samples=512, n_jobs=-1
+            contamination=0.01, random_state=42, n_estimators=100, max_samples='auto', n_jobs=-1
         )
         iso_clf.fit(normalized_features)
         self.anomaly_detectors['isolation_forest'] = iso_clf

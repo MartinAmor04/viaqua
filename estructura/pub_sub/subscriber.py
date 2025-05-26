@@ -9,7 +9,7 @@ import json
 
 import sys
 sys.path.append('../ui_curuxia/modules')
-from sql_queries import add_alert
+from sql_queries import add_alert, get_machine
 
 
 # === VARIABLES DE ENTORNO ===
@@ -40,10 +40,18 @@ def on_message(client, userdata, msg):
     mensaje_dict = json.loads(mensaje)
     machine_id = mensaje_dict.get("machine_id")
     audio_string = mensaje_dict.get("audio_record")
-
+    machine_data=get_machine(machine_id)
+    print(machine_data)
     print(f"Mensaje recibido en {msg.topic}")
-    msg='Fallo de la máquina ' + machine_id
-    send_email("Nuevo mensaje en el Topic MQTT", "Ha")
+    msg = f"""
+    Hola,
+    CuruxIA ha detectado un fallo.
+    * ID MÁQUINA: {machine_data[0]}
+    * TIPO: {machine_data[3]}
+    * LUGAR: {machine_data[2]}
+    Para más información consulta tu CuruxIA APP-
+    """ 
+    send_email("CuruxIA: fallo en máquina.", msg)
     add_alert(machine_id, audio_string)
 
 # === SEND MESSAGE FUNCTION ===

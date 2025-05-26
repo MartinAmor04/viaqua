@@ -6,3 +6,5 @@ streamlit-extras
 great-tables
 numpy
 wave
+psycopg2-binary
+pydub

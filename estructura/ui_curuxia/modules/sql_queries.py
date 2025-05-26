@@ -74,3 +74,12 @@ def add_alert(machine_id, encoded_audio):
                 conn.commit()
     except mysql.connector.Error as err:
         print(f"Error al agregar la alerta: {err}")
+
+def get_machine(machine_id):
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM machine WHERE id = %s;", (machine_id,))
+                return cursor.fetchone()
+    except mysql.connector.Error as err:
+        print(f"Error al obtener la máquina: {err}")

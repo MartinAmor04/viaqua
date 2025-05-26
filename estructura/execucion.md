@@ -19,7 +19,7 @@
 
 4. Co .venv activo executar (isto inserta datos de proba):  
     ```
-    cd /estructura/database
+    cd estructura/database
     python3 create_database.py
     python3 insert_alert_encoded_data.py
     ```

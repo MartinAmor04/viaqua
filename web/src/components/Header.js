@@ -17,17 +17,27 @@ function Header() {
   }, [darkMode]);
 
   return (
-    <header className="header">
+    <div>
+
+       <header className="header">
       <h1 className="header-title">
         <span className="curux">Curux</span><span className="ia">IA</span>
       </h1>
-      <img src={require("../styles/img/favicon.png")} alt="CuruxIA Logo" className="header-logo" />
+            <img src={require("../styles/img/favicon.png")} alt="CuruxIA Logo" className="header-logo" />
+
 
       {/* 🔄 Botón de modo oscuro */}
       <button className="theme-toggle" onClick={() => setDarkMode(!darkMode)}>
         {darkMode ? "Modo Claro" : "Modo Oscuro"}
       </button>
     </header>
+    <div class="sub-header">
+      Mantemento preditivo a baixo custo
+
+      </div>
+
+    </div>
+   
   );
 }
 

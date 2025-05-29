@@ -71,7 +71,7 @@ function Graphs({ alertData, fullAlertData, filteredMonth }) {
               acc[alert.Tipo_avería || "Desconocido"] = (acc[alert.Tipo_avería || "Desconocido"] || 0) + 1;
               return acc;
             }, {})),
-            backgroundColor: ["#fe6b13", "#5da3ea", "#FFCE56", "#4CAF50", "#8E44AD"],
+            backgroundColor: ["#fe6b13", "#032740", "#FFCE56", "#4CAF50", "#8E44AD"],
           },
         ],
       },

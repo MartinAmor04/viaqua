@@ -32,6 +32,9 @@ const Filters = ({ onFilterChange }) => {
     };
 
     return (
+        <div>
+        <h2 className="graph-title">Filtros</h2>
+
         <div className="filters">
             <label>Estado:</label>
             <select value={estado} onChange={(e) => handleFilterChange(e, "estado")}>
@@ -69,6 +72,8 @@ const Filters = ({ onFilterChange }) => {
                 )}
             </select>
         </div>
+        </div>
+        
     );
 };
 

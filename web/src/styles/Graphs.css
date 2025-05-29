@@ -23,7 +23,7 @@
 
 .graph-title {
   font-size: 2rem; /* Más grande */
-  font-family: "Zen Dots", sans-serif;
+  font-family: 'Montserrat', "Zen Dots", sans-serif;
   color: var(--color-primary); /* Color primario */
   margin-bottom: 20px;
 }

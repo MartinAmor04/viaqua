@@ -3,7 +3,7 @@
   display: flex;
   justify-content: center; /* Centra horizontalmente */
   align-items: center;
-  background-color: var(--color-gray); /* Fondo blanco */
+  background-color: white; /* Fondo blanco */
   padding: 50px;
   gap: 60px; /* Mayor separación entre título y logo */
 }
@@ -14,7 +14,14 @@
   font-family: "Zen Dots", sans-serif;
   margin: 0;
 }
-
+.sub-header {
+  background-color: var(--color-primary);
+  color:white;
+  border-radius: 3px;
+  padding: 1em;
+  text-align: center;
+  font-size: 1.4em;
+}
 /* 🔹 Colores del título "CuruxIA" */
 .header-title span.curux {
   color: var(--color-primary);

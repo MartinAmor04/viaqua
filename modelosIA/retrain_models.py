@@ -1,17 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-"""
-retrain_with_validated.py
-
-Este script:
-1) Se conecta a la base de datos MySQL.
-2) Selecciona todas las alertas cuyo 'estado' = 'Arreglada'.
-3) Decodifica cada audio en Base64 a bytes WAV, extrae MFCCs (media + desviación) y arma X, y.
-4) Entrena un VotingClassifier (RandomForest + SVC + SGDClassifier) con esas muestras validadas.
-5) Guarda el modelo resultante en 'voting_classifier_validated.joblib'.
-"""
-
 import os
 import base64
 import io

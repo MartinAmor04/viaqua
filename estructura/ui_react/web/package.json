@@ -1,0 +1,36 @@
+{
+  "name": "curuxia",
+  "version": "1.0.0",
+  "description": "Interfaz de gestión de alertas para CuruxIA",
+  "main": "index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test"
+  },
+  "dependencies": {
+    "chart.js": "^4.0.0",
+    "leaflet": "^1.9.4",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.0.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "prettier": "^2.8.0"
+  },
+  "proxy": "http://127.0.0.1:5000",
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

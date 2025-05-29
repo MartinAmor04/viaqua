@@ -9,8 +9,9 @@ def audio_to_base64(audio_path):
 
 def base64_to_audio(base64_string):
     audio_bytes = base64.b64decode(base64_string)
-    audio_increased=increase_volume(BytesIO(audio_bytes) )
-    return audio_increased
+    # audio_increased=increase_volume(BytesIO(audio_bytes) )
+    return audio_bytes
+
 
 def increase_volume(audio_low):
     audio = AudioSegment.from_wav(audio_low)

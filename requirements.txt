@@ -8,3 +8,6 @@ numpy
 wave
 psycopg2-binary
 pydub
+Flask
+Flask-Cors
+pandas

@@ -1,0 +1,138 @@
+/* 🏗 Estilos de la tabla */
+.alert-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 20px;
+  border-radius: 10px; /* 🔹 Bordes redondeados en toda la tabla */
+  overflow: hidden; /* 🔹 Asegura que los bordes sean visibles */
+}
+
+/* 📌 Bordes de la tabla */
+.alert-table th, .alert-table td {
+  border: 1px solid var(--color-primary);
+  padding: 10px;
+  text-align: left;
+}
+
+/* 🔹 Bordes redondeados en las esquinas exteriores */
+.alert-table thead tr:first-child th:first-child {
+  border-top-left-radius: 10px;
+}
+.alert-table thead tr:first-child th:last-child {
+  border-top-right-radius: 10px;
+}
+.alert-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 10px;
+}
+.alert-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 10px;
+}
+
+/* 🎨 Estilo del título de la tabla */
+.table-title {
+  font-size: 2rem; /* Más grande */
+  font-family: "Zen Dots", sans-serif;
+  color: var(--color-primary); /* Color primario */
+  margin-bottom: 20px;
+}
+
+.alert-table tbody td {
+  color: var(--color-black); /* Hace que el texto de las filas sea negro */
+}
+
+/* 🔹 Estilo del encabezado de la tabla */
+.alert-table thead {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-weight: bold;
+}
+
+/* 🎨 Alternar colores en filas para mejor visibilidad */
+.alert-table tbody tr:nth-child(even) {
+  background-color: var(--color-gray);
+}
+
+.alert-table tbody tr:hover {
+  background-color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* 📌 Mensaje cuando no hay alertas */
+.empty-message {
+  text-align: center;
+  font-size: 1.2rem;
+  color: var(--color-primary);
+  margin-top: 20px;
+}
+
+/* 📌 Estilos de la columna de acción */
+.action-column {
+  text-align: center;
+}
+
+/* 📌 Columnas del encabezado */
+.alert-table th {
+    padding: 12px;
+    text-align: center; /* 🔹 Texto centrado */
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif; /* 🔹 Tipografía Montserrat */
+}
+
+
+/* 🔹 Estilos de los botones de acción */
+.action-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  margin: 0 5px; /* Espacio entre los botones */
+}
+
+.action-btn img {
+  width: 30px; /* Tamaño de la imagen dentro del botón */
+  height: 30px;
+}
+
+/* 🔹 Estilos para los desplegables (tipo de avería y estado) */
+select {
+    padding: 6px 12px;
+    border: 1px solid var(--color-gray);
+    border-radius: 4px;
+    background-color: var(--color-white);
+    cursor: pointer;
+    font-size: 14px;
+    width: 100%;
+}
+
+select:hover {
+    border-color: var(--color-black);
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 5px rgba(93, 163, 234, 0.5);
+}
+
+/* 🔹 Estilos para el botón de "Guardar" */
+.save-btn {
+    padding: 8px 12px;
+    background-color: #28a745;
+    color: var(--color-white);
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.save-btn:hover {
+    background-color: #218838;
+}
+
+/* 🔹 Asegurar que los botones de acción tengan espacio */
+.action-column {
+    display: flex;
+    gap: 10px;
+}
+

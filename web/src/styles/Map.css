@@ -1,0 +1,21 @@
+.map-container {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+}
+
+.map-image {
+  width: 100%;
+  height: auto;
+}
+
+.map-point {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: orange;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+

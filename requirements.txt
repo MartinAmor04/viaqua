@@ -8,3 +8,9 @@ numpy
 wave
 psycopg2-binary
 pydub
+Flask
+Flask-Cors
+mysql-connector-python
+pandas
+python-dotenv
+mysql

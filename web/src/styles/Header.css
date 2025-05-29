@@ -1,0 +1,75 @@
+/* 🏗 Estilo del header */
+.header {
+  display: flex;
+  justify-content: center; /* Centra horizontalmente */
+  align-items: center;
+  background-color: var(--color-gray); /* Fondo blanco */
+  padding: 50px;
+  gap: 60px; /* Mayor separación entre título y logo */
+}
+
+/* 🎨 Estilo del título */
+.header-title {
+  font-size: 5.5rem; /* Más grande */
+  font-family: "Zen Dots", sans-serif;
+  margin: 0;
+}
+
+/* 🔹 Colores del título "CuruxIA" */
+.header-title span.curux {
+  color: var(--color-primary);
+}
+
+.header-title span.ia {
+  color: var(--color-secondary);
+}
+
+/* 🏷 Estilo del logo */
+.header-logo {
+  width: 140px; /* Más grande */
+  height: 140px;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  padding: 10px;
+  font-size: 14px;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  background-color: var(--color-secondary);
+}
+
+/* 🌙 Aplicar el modo oscuro a toda la página */
+.dark-mode .container {
+    background-color: #121212 !important;
+      color: white !important;
+}
+
+/* 🔧 Estilos para la tabla y gráficos */
+.dark-mode .alert-table,
+.dark-mode .graph-card {
+  background-color: #3a3a3a !important;
+  color: white !important;
+}
+
+/* 🔧 Asegurar que los textos dentro de la tabla sean blancos */
+.dark-mode .alert-table th,
+.dark-mode .alert-table td,
+.dark-mode .graph-card canvas {
+  color: white !important;
+}
+
+/* 🔧 Estilos para títulos */
+.dark-mode .table-title,
+.dark-mode .graph-title {
+  color: var(--color-secondary) !important;
+}
+

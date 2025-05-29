@@ -26,41 +26,58 @@ const AlertTable = ({ alerts, setAlerts }) => {
   // 🔹 Reproduce el audio desde base64
   const handlePlay = (id) => {
     const alert = alerts.find(alert => alert.ID === id);
-    console.log(alert)
     if (!alert || !alert.Audio) {
       console.error("⚠️ No se encontró audio para esta alerta.");
       return;
     }
-
+  
     try {
       setPlayingRow(id);
-
-      // Extrae el contenido base64 (puede venir con encabezado o solo el contenido)
-      const base64 = alert.Audio.startsWith("data:") ? alert.Audio.split(",")[1] : alert.Audio;
-
-      // Convierte base64 a un blob
+  
+      const base64 = alert.Audio.startsWith("data:")
+        ? alert.Audio.split(",")[1]
+        : alert.Audio;
+  
       const binaryString = atob(base64);
       const len = binaryString.length;
       const bytes = new Uint8Array(len);
       for (let i = 0; i < len; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-
-      // Crea el blob con tipo MIME de audio
+  
       const blob = new Blob([bytes], { type: "audio/wav" });
-      const audioUrl = URL.createObjectURL(blob);
-
-      // Reproduce el audio
-      const audio = new Audio(audioUrl);
-      audio.play();
-
-      audio.onended = () => setPlayingRow(null);
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+      const reader = new FileReader();
+      reader.onload = function () {
+        audioContext.decodeAudioData(reader.result, (buffer) => {
+          const source = audioContext.createBufferSource();
+          source.buffer = buffer;
+  
+          const gainNode = audioContext.createGain();
+          gainNode.gain.value = 20.0; // Aumenta volumen (1.0 = normal, 2.0 = +6dB aprox)
+  
+          source.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+  
+          source.start(0);
+          source.onended = () => {
+            setPlayingRow(null);
+            audioContext.close();
+          };
+        }, (error) => {
+          console.error("❌ Error al decodificar audio:", error);
+          setPlayingRow(null);
+        });
+      };
+  
+      reader.readAsArrayBuffer(blob);
     } catch (error) {
       console.error("❌ Error al reproducir el audio:", error);
       setPlayingRow(null);
     }
   };
-
+  
   const issueTypes = ["Fallo eléctrico", "Sobrecalentamiento", "Pérdida de potencia", "Fallo mecánico", "Fallo en sensor"];
 
   return (

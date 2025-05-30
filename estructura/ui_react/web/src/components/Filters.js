@@ -32,32 +32,40 @@ const Filters = ({ onFilterChange }) => {
     };
 
     return (
-        <div className="filters">
-            <label>Estado:</label>
-            <select value={estado} onChange={(e) => handleFilterChange(e, "estado")}>
-                <option value="Activas">Activas</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="En revisión">En revisión</option>
-                <option value="Arreglada">Arreglada</option>
-                <option value="Todas">Todas</option>
-            </select>
-
-            <label>Tipo:</label>
-            <select value={tipo} onChange={(e) => handleFilterChange(e, "tipo")}>
-                <option value="Todos">Todos</option>
-                <option value="Soplante">Soplante</option>
-                <option value="Compresor">Compresor</option>
-                <option value="Generador">Generador</option>
-                <option value="Motor">Motor</option>
-                <option value="Bomba">Bomba</option>
-            </select>
-
-            <label>Mes:</label>
-            <select value={mes} onChange={(e) => handleFilterChange(e, "mes")}>
-                {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map(m =>
-                    <option key={m} value={m}>{m}</option>
-                )}
-            </select>
+        <div>
+            <h2 className="graph-title">FiltrosEstadísticas de Alertas</h2>
+            <div className="filters">
+                <div>
+                    <label>Estado:</label>
+                    <select value={estado} onChange={(e) => handleFilterChange(e, "estado")}>
+                        <option value="Activas">Activas</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En revisión">En revisión</option>
+                        <option value="Arreglada">Arreglada</option>
+                        <option value="Todas">Todas</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label>Tipo:</label>
+                    <select value={tipo} onChange={(e) => handleFilterChange(e, "tipo")}>
+                        <option value="Todos">Todos</option>
+                        <option value="Soplante">Soplante</option>
+                        <option value="Compresor">Compresor</option>
+                        <option value="Generador">Generador</option>
+                        <option value="Motor">Motor</option>
+                        <option value="Bomba">Bomba</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Mes:</label>
+                    <select value={mes} onChange={(e) => handleFilterChange(e, "mes")}>
+                        {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map(m =>
+                            <option key={m} value={m}>{m}</option>
+                        )}
+                    </select>
+                </div>
+            </div>
         </div>
     );
 };

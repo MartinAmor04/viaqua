@@ -101,7 +101,7 @@ const AlertTable = ({ alerts, setAlerts }) => {
           {alerts.map((alert) => (
             <tr key={alert.ID}>
               <td>{alert.ID}</td>
-              <td>{alert.Máquina}</td>
+              <td class='maquinote'>{alert.Máquina}</td>
               <td>{alert.Tipo}</td>
               <td>{alert.Fecha_hora}</td>
               <td>{alert.Ubicación}</td>

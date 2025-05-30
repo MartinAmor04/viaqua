@@ -62,7 +62,7 @@ const App = () => {
             <AlertTable alerts={alerts} setFilters={setFilters} />
             <Graphs alertData={alerts} fullAlertData={alertsSinFiltrar} filteredMonth={filters.mes} />
 
-            <h2>Mapa de Alertas</h2>
+            {/* <h2>Mapa de Alertas</h2> */}
             <MapComponent fullAlertData={alertsSinFiltrar} />       
         </div>
     );

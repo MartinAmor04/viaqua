@@ -13,7 +13,7 @@ const locations = {
 const MapComponent = ({ fullAlertData = [] }) => {
   return (
     <div className="map-container">
-      <img src="/Galicia.png" alt="Mapa de Galicia" className="map-image" />
+      {/* <img src="/Galicia.png" alt="Mapa de Galicia" className="map-image" />
 
       {fullAlertData.length > 0 &&
         fullAlertData.map((alert, index) => (
@@ -27,7 +27,7 @@ const MapComponent = ({ fullAlertData = [] }) => {
               }}
             ></div>
           )
-        ))}
+        ))} */}
     </div>
   );
 };

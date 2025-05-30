@@ -71,7 +71,7 @@ function Graphs({ alertData, fullAlertData, filteredMonth }) {
               acc[alert.Tipo_avería || "Desconocido"] = (acc[alert.Tipo_avería || "Desconocido"] || 0) + 1;
               return acc;
             }, {})),
-            backgroundColor: ["#fe6b13", "#5da3ea", "#FFCE56", "#4CAF50", "#8E44AD"],
+            backgroundColor: ["#fe6b13", "#032740", "#FFCE56", "#4CAF50", "#8E44AD"],
           },
         ],
       },
@@ -105,28 +105,28 @@ function Graphs({ alertData, fullAlertData, filteredMonth }) {
     });
 
     // ✅ Gráfico de líneas - Histórico por máquina
-    lineChartRef.current.chart = new Chart(lineChartRef.current.getContext("2d"), {
-      type: "line",
-      data: {
-        labels: Object.keys(alertData.reduce((acc, alert) => {
-          acc[alert.Máquina || "Sin nombre"] = (acc[alert.Máquina || "Sin nombre"] || []).concat(new Date(alert.Fecha_hora).toLocaleDateString());
-          return acc;
-        }, {})),
-        datasets: Object.keys(alertData.reduce((acc, alert) => {
-          acc[alert.Máquina || "Sin nombre"] = (acc[alert.Máquina || "Sin nombre"] || []).concat(new Date(alert.Fecha_hora).toLocaleDateString());
-          return acc;
-        }, {})).map(machine => ({
-          label: machine,
-          data: alertData.reduce((acc, alert) => {
-            acc[alert.Máquina || "Sin nombre"] = (acc[alert.Máquina || "Sin nombre"] || []).length;
-            return acc;
-          }, {})[machine],
-          borderColor: "#032740",
-          tension: 0.1,
-        })),
-      },
-      options: { responsive: true, plugins: { legend: { position: "top" }, title: { display: true, text: "Histórico de Averías por Máquina" } } },
-    });
+  //   lineChartRef.current.chart = new Chart(lineChartRef.current.getContext("2d"), {
+  //     type: "line",
+  //     data: {
+  //       labels: Object.keys(alertData.reduce((acc, alert) => {
+  //         acc[alert.Máquina || "Sin nombre"] = (acc[alert.Máquina || "Sin nombre"] || []).concat(new Date(alert.Fecha_hora).toLocaleDateString());
+  //         return acc;
+  //       }, {})),
+  //       datasets: Object.keys(alertData.reduce((acc, alert) => {
+  //         acc[alert.Máquina || "Sin nombre"] = (acc[alert.Máquina || "Sin nombre"] || []).concat(new Date(alert.Fecha_hora).toLocaleDateString());
+  //         return acc;
+  //       }, {})).map(machine => ({
+  //         label: machine,
+  //         data: alertData.reduce((acc, alert) => {
+  //           acc[alert.Máquina || "Sin nombre"] = (acc[alert.Máquina || "Sin nombre"] || []).length;
+  //           return acc;
+  //         }, {})[machine],
+  //         borderColor: "#032740",
+  //         tension: 0.1,
+  //       })),
+  //     },
+  //     options: { responsive: true, plugins: { legend: { position: "top" }, title: { display: true, text: "Histórico de Averías por Máquina" } } },
+  //   });
 
   }, [alertData, fullAlertData, filteredMonth]);
 
@@ -139,7 +139,7 @@ function Graphs({ alertData, fullAlertData, filteredMonth }) {
         <div className="chart-wrapper">
           <div className="graph-card"><canvas ref={pieChartRef}></canvas></div>
           <div className="graph-card"><canvas ref={barChartRef}></canvas></div>
-          <div className="graph-card full-width"><canvas ref={lineChartRef}></canvas></div>
+          {/* <div className="graph-card full-width"><canvas ref={lineChartRef}></canvas></div> */}
         </div>
       </div>
     </>

@@ -5,7 +5,7 @@
   --color-accent: #5da3ea;
   --color-white: #ffffff;
   --color-black: #000000;
-  --color-gray: #cccccc6e;
+  --color-gray: #03274010;
 }
 
 /* 🌍 Estilos generales */
@@ -13,7 +13,10 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: var(--color-white);
+  /* background-color: #f6f6f7; */
+  background-color: #f8f9fa;
+
+  color: #666;
 }
 
 /* 📦 Contenedor principal */

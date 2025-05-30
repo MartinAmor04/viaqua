@@ -33,7 +33,7 @@ const Filters = ({ onFilterChange }) => {
 
     return (
         <div>
-            <h2 className="graph-title">FiltrosEstadísticas de Alertas</h2>
+            <h2 className="graph-title">Filtros</h2>
             <div className="filters">
                 <div>
                     <label>Estado:</label>

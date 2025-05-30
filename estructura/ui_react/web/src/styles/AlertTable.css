@@ -6,15 +6,21 @@
   margin-top: 20px;
   border-radius: 10px; /* 🔹 Bordes redondeados en toda la tabla */
   overflow: hidden; /* 🔹 Asegura que los bordes sean visibles */
+  background-color: white;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);  
 }
 
 /* 📌 Bordes de la tabla */
 .alert-table th, .alert-table td {
-  border: 1px solid var(--color-primary);
-  padding: 10px;
+  padding: 1.3em;
   text-align: left;
 }
 
+.maquinote {
+  /* color: var(--color-primary); */
+  font-weight: bolder;
+  font-size: 1.1em;
+}
 /* 🔹 Bordes redondeados en las esquinas exteriores */
 .alert-table thead tr:first-child th:first-child {
   border-top-left-radius: 10px;
@@ -32,29 +38,31 @@
 /* 🎨 Estilo del título de la tabla */
 .table-title {
   font-size: 2rem; /* Más grande */
-  font-family: "Zen Dots", sans-serif;
+  font-family:  Tahoma,  Verdana, sans-serif;
   color: var(--color-primary); /* Color primario */
   margin-bottom: 20px;
 }
 
-.alert-table tbody td {
-  color: var(--color-black); /* Hace que el texto de las filas sea negro */
-}
-
 /* 🔹 Estilo del encabezado de la tabla */
 .alert-table thead {
-  background-color: var(--color-primary);
+  background-color: var(--color-secondary);
   color: var(--color-white);
   font-weight: bold;
+  font-size: 1.5em;
 }
 
 /* 🎨 Alternar colores en filas para mejor visibilidad */
 .alert-table tbody tr:nth-child(even) {
-  background-color: var(--color-gray);
+  /* background-color: var(--color-gray); */
+  border: 1px solid black;
+}
+
+.alert-table tbody td{
+  border-bottom: 1px solid #4b4f5228;
 }
 
 .alert-table tbody tr:hover {
-  background-color: var(--color-accent);
+  background-color: var(--color-gray);
   cursor: pointer;
 }
 
@@ -73,9 +81,8 @@
 
 /* 📌 Columnas del encabezado */
 .alert-table th {
-    padding: 12px;
     text-align: center; /* 🔹 Texto centrado */
-    font-size: 16px;
+    font-size: 0.7em;
     font-family: 'Montserrat', sans-serif; /* 🔹 Tipografía Montserrat */
 }
 

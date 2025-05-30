@@ -3,9 +3,11 @@
   display: flex;
   justify-content: center; /* Centra horizontalmente */
   align-items: center;
-  background-color: var(--color-gray); /* Fondo blanco */
   padding: 50px;
   gap: 60px; /* Mayor separación entre título y logo */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Sombra suave */
+  border-radius: 10px;
+  background-color: white;
 }
 
 /* 🎨 Estilo del título */
@@ -52,8 +54,6 @@
     background-color: #121212 !important;
       color: white !important;
 }
-
-
 
 /* 🔧 Estilos para la tabla y gráficos */
 .dark-mode .alert-table,

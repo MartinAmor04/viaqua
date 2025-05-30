@@ -52,16 +52,6 @@ const Filters = ({ onFilterChange }) => {
                 <option value="Bomba">Bomba</option>
             </select>
 
-            <label>Ubicación:</label>
-            <select value={ubicacion} onChange={(e) => handleFilterChange(e, "ubicacion")}>
-                <option value="Todas">Todas</option>
-                <option value="Vigo">Vigo</option>
-                <option value="A Coruña">A Coruña</option>
-                <option value="Santiago de Compostela">Santiago de Compostela</option>
-                <option value="Lugo">Lugo</option>
-                <option value="Ourense">Ourense</option>
-            </select>
-
             <label>Mes:</label>
             <select value={mes} onChange={(e) => handleFilterChange(e, "mes")}>
                 {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map(m =>

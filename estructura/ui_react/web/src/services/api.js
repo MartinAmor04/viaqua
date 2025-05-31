@@ -28,3 +28,14 @@ export async function editAlert(id, alertType, estado) {
         return { success: false };
     }
 }
+
+export async function getSoundFile(filename) {
+    try {
+        const response = await fetch(`${API_URL}/read-alert-file?filename=${filename}`);
+
+        return await response.json();
+    } catch (error) {
+        console.error("❌ Error al obtener archivo:", error);
+        return { success: false };
+    }
+}

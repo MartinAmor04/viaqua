@@ -48,6 +48,7 @@ def get_alerts(estado_filtro="Activas"):
             }
 
             query += filtros.get(estado_filtro, filtros["Activas"])
+            # query+='LIMIT 10'
             cursor.execute(query)
             alertas = cursor.fetchall()
 

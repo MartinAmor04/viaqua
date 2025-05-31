@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { editAlert } from "../services/api";
+import { editAlert, getSoundFile } from "../services/api";
 import "../styles/AlertTable.css";
 import Chart from "chart.js/auto";
 
@@ -77,50 +77,64 @@ const AlertTable = ({ alerts, setAlerts }) => {
   const issueTypes = ["Rodamientos", "Fallo de fase", "Sobrecalentamiento", "Fallo mecánico", "Fallo eléctrico", "Válvula dañada"];
 
   useEffect(() => {
-    if (!selectedAlert || !chartRef.current) return;
+    if (selectedAlert && chartRef.current) {
+      const fetchData = async () => {
+        try {
+          const response = await getSoundFile(`rms_machine_example.txt`);
+          const data = response.data;
+          console.log(data)
+          if (lineChartInstance.current) {
+            lineChartInstance.current.destroy();
+          }
 
-    const alertData = alerts;
+          const ctx = chartRef.current.getContext("2d");
+          const filteredData = data.filter((_, index) => index % 2 === 0);
+          const filteredLabels = Array.from({ length: filteredData.length }, (_, i) => i);
 
-    // Agrupar datos por máquina y fecha
-    const grouped = {};
-    alertData.forEach(alert => {
-      const machine = alert.Máquina || "Sin nombre";
-      const date = new Date(alert.Fecha_hora).toLocaleDateString();
-      if (!grouped[machine]) grouped[machine] = {};
-      grouped[machine][date] = (grouped[machine][date] || 0) + 1;
-    });
+          lineChartInstance.current = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: filteredLabels, // No hay eje X, solo índices
+              datasets: [
+                {
+                  label: "Valores de RMS",
+                  data: filteredData,
+                  borderColor: '#fe6b13',
+                  fill: false,
+                  pointRadius: 0,
+                },
+              ],
+            },
+            options: {
+              responsive: false,
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  ticks: {
+                    maxTicksLimit: 3, // Muestra máximo 3 etiquetas en X
+                  },
+                  title: {
+                    display: true,
+                    text: 'Índice',
+                  },
+                },
+                y: {
+            
+                  title: {
+                    display: true,
+                    text: 'Valor RMS',
+                  },
+                },
+              },
+            },
+          });
+        } catch (error) {
+          console.error("Error al obtener los datos:", error);
+        }
+      };
 
-    const allDates = [...new Set(alertData.map(a => new Date(a.Fecha_hora).toLocaleDateString()))].sort();
-
-    const datasets = Object.keys(grouped).map(machine => ({
-      label: machine,
-      data: allDates.map(date => grouped[machine][date] || 0),
-      borderColor: "#032740",
-      tension: 0.1,
-    }));
-
-    // Destruir gráfico anterior si existe
-    if (lineChartInstance.current) {
-      lineChartInstance.current.destroy();
+      fetchData();
     }
-
-    lineChartInstance.current = new Chart(chartRef.current.getContext("2d"), {
-      type: "line",
-      data: {
-        labels: allDates,
-        datasets: datasets,
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: "top" },
-          title: {
-            display: true,
-            text: "Histórico de Averías por Máquina",
-          },
-        },
-      },
-    });
   }, [selectedAlert, alerts]);
 
   return (
@@ -191,7 +205,7 @@ const AlertTable = ({ alerts, setAlerts }) => {
             <button className="modal-close" onClick={closeModal}>✖</button>
             <h3>Detalles de la alerta</h3>
             <p><strong>Máquina:</strong> {selectedAlert.Máquina}</p>
-            <canvas ref={chartRef} style={{ width: "100%", height: "300px", marginTop: "20px" }} />
+            <canvas ref={chartRef} style={{ width: "1000px", height: "400px", marginTop: "20px" }} />
           </div>
         </div>
       )}

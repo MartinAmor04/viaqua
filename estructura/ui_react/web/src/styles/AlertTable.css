@@ -139,7 +139,7 @@ select:focus {
 }
 
 .save-btn:hover {
-    background-color: #218838;
+  font-size: 0.9em;
 }
 
 /* 🔹 Asegurar que los botones de acción tengan espacio */

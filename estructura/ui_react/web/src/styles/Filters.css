@@ -32,10 +32,9 @@
     padding: 1.1em 0.8em;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Sombra suave */
     background-color: white;
-}
+    border-radius: 10px;
+    
 
- option {
-    padding: 0.8em;
 }
 
 .filters select:hover {
@@ -44,6 +43,6 @@
 
 .filters select:focus {
     outline: none;
-    border-color: gray;
+    border-color: white;
     box-shadow: 0 0 5px rgb(168, 168, 168);
 }

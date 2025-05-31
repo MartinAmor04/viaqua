@@ -175,7 +175,7 @@ const AlertTable = ({ alerts, setAlerts }) => {
                   </td>
                   <td>
                     <button className="save-btn" onClick={() => handleSave(alert.ID, alert.Tipo_avería, alert.Estado)}>
-                      v Guardar
+                      Guardar
                     </button>
                   </td>
                 </>
@@ -203,8 +203,7 @@ const AlertTable = ({ alerts, setAlerts }) => {
         <div className="modal-overlay">
           <div className="modal-content">
             <button className="modal-close" onClick={closeModal}>✖</button>
-            <h3>Detalles de la alerta</h3>
-            <p><strong>Máquina:</strong> {selectedAlert.Máquina}</p>
+            <p style={{fontSize: '1.3em', textAlign: 'center'}}><strong>Evolutivo sonoro. Máquina:</strong> {selectedAlert.Máquina}</p>
             <canvas ref={chartRef} style={{ width: "1000px", height: "400px", marginTop: "20px" }} />
           </div>
         </div>

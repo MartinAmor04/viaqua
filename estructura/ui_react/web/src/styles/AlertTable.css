@@ -21,6 +21,11 @@
   font-weight: bolder;
   font-size: 1.1em;
 }
+
+.maquina:hover {
+  font-size: 1.1em;
+
+}
 /* 🔹 Bordes redondeados en las esquinas exteriores */
 .alert-table thead tr:first-child th:first-child {
   border-top-left-radius: 10px;
@@ -123,8 +128,8 @@ select:focus {
 
 /* 🔹 Estilos para el botón de "Guardar" */
 .save-btn {
-    padding: 8px 12px;
-    background-color: #28a745;
+    padding: 1.2em;
+    background-color: var(--color-secondary);
     color: var(--color-white);
     font-weight: bold;
     border: none;
@@ -143,3 +148,22 @@ select:focus {
     gap: 10px;
 }
 
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 1000px;
+}

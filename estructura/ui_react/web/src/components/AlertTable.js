@@ -1,84 +1,127 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { editAlert } from "../services/api";
 import "../styles/AlertTable.css";
+import Chart from "chart.js/auto";
 
 const AlertTable = ({ alerts, setAlerts }) => {
   const [editRow, setEditRow] = useState(null);
   const [playingRow, setPlayingRow] = useState(null);
+  const [selectedAlert, setSelectedAlert] = useState(null);
+  const chartRef = useRef(null);
+  const lineChartInstance = useRef(null); // Para limpiar el gráfico anterior
 
-  // 🔹 Función para activar el modo edición
   const handleEdit = (id) => {
     setEditRow(id);
   };
 
-  // 🔹 Función para guardar los cambios
   const handleSave = (id, newType, newStatus) => {
     editAlert(id, newType, newStatus).then((response) => {
       if (response.success) {
         setAlerts(alerts.map(alert => alert.ID === id ? { ...alert, Tipo_avería: newType, Estado: newStatus } : alert));
-        setEditRow(null); 
+        setEditRow(null);
       } else {
         console.error("❌ Error al guardar los cambios.");
       }
     });
   };
 
-  // 🔹 Reproduce el audio desde base64
-  const handlePlay = (id) => {
+  const handlePlay = (id, e) => {
+    e.stopPropagation();
     const alert = alerts.find(alert => alert.ID === id);
-    if (!alert || !alert.Audio) {
-      console.error("⚠️ No se encontró audio para esta alerta.");
-      return;
-    }
-  
+    if (!alert || !alert.Audio) return console.error("⚠️ No se encontró audio para esta alerta.");
+
     try {
       setPlayingRow(id);
-  
-      const base64 = alert.Audio.startsWith("data:")
-        ? alert.Audio.split(",")[1]
-        : alert.Audio;
-  
+      const base64 = alert.Audio.startsWith("data:") ? alert.Audio.split(",")[1] : alert.Audio;
       const binaryString = atob(base64);
-      const len = binaryString.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-  
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+
       const blob = new Blob([bytes], { type: "audio/wav" });
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  
+
       const reader = new FileReader();
-      reader.onload = function () {
+      reader.onload = () => {
         audioContext.decodeAudioData(reader.result, (buffer) => {
           const source = audioContext.createBufferSource();
           source.buffer = buffer;
-  
           const gainNode = audioContext.createGain();
-          gainNode.gain.value = 20.0; // Aumenta volumen (1.0 = normal, 2.0 = +6dB aprox)
-  
+          gainNode.gain.value = 20.0;
           source.connect(gainNode);
           gainNode.connect(audioContext.destination);
-  
           source.start(0);
           source.onended = () => {
             setPlayingRow(null);
             audioContext.close();
           };
-        }, (error) => {
+        }, error => {
           console.error("❌ Error al decodificar audio:", error);
           setPlayingRow(null);
         });
       };
-  
       reader.readAsArrayBuffer(blob);
     } catch (error) {
       console.error("❌ Error al reproducir el audio:", error);
       setPlayingRow(null);
     }
   };
-  
-  const issueTypes = ["Fallo eléctrico", "Sobrecalentamiento", "Pérdida de potencia", "Fallo mecánico", "Fallo en sensor"];
+
+  const handleRowClick = (alert) => {
+    setSelectedAlert(alert);
+  };
+
+  const closeModal = () => {
+    setSelectedAlert(null);
+  };
+
+  const issueTypes = ["Rodamientos", "Fallo de fase", "Sobrecalentamiento", "Fallo mecánico", "Fallo eléctrico", "Válvula dañada"];
+
+  useEffect(() => {
+    if (!selectedAlert || !chartRef.current) return;
+
+    const alertData = alerts;
+
+    // Agrupar datos por máquina y fecha
+    const grouped = {};
+    alertData.forEach(alert => {
+      const machine = alert.Máquina || "Sin nombre";
+      const date = new Date(alert.Fecha_hora).toLocaleDateString();
+      if (!grouped[machine]) grouped[machine] = {};
+      grouped[machine][date] = (grouped[machine][date] || 0) + 1;
+    });
+
+    const allDates = [...new Set(alertData.map(a => new Date(a.Fecha_hora).toLocaleDateString()))].sort();
+
+    const datasets = Object.keys(grouped).map(machine => ({
+      label: machine,
+      data: allDates.map(date => grouped[machine][date] || 0),
+      borderColor: "#032740",
+      tension: 0.1,
+    }));
+
+    // Destruir gráfico anterior si existe
+    if (lineChartInstance.current) {
+      lineChartInstance.current.destroy();
+    }
+
+    lineChartInstance.current = new Chart(chartRef.current.getContext("2d"), {
+      type: "line",
+      data: {
+        labels: allDates,
+        datasets: datasets,
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "top" },
+          title: {
+            display: true,
+            text: "Histórico de Averías por Máquina",
+          },
+        },
+      },
+    });
+  }, [selectedAlert, alerts]);
 
   return (
     <div className="alert-table-container">
@@ -87,9 +130,7 @@ const AlertTable = ({ alerts, setAlerts }) => {
       <table className="alert-table">
         <thead>
           <tr>
-            <th>ID</th>
             <th>Máquina</th>
-            <th>Tipo</th>
             <th>Fecha/Hora</th>
             <th>Ubicación</th>
             <th>Avería</th>
@@ -99,23 +140,18 @@ const AlertTable = ({ alerts, setAlerts }) => {
         </thead>
         <tbody>
           {alerts.map((alert) => (
-            <tr key={alert.ID}>
-              <td>{alert.ID}</td>
-              <td class='maquinote'>{alert.Máquina}</td>
-              <td>{alert.Tipo}</td>
+            <tr key={alert.ID} >
+              <td className='maquina' onClick={() => handleRowClick(alert)} style={{ cursor: "pointer" }}><span className='maquinote'>{alert.Máquina}</span><br></br>{alert.Tipo}</td>
               <td>{alert.Fecha_hora}</td>
               <td>{alert.Ubicación}</td>
 
               {editRow === alert.ID ? (
                 <>
-                  {/* 🔹 Desplegable para modificar el Tipo de Avería */}
                   <td>
                     <select defaultValue={alert.Tipo_avería} onChange={(e) => alert.Tipo_avería = e.target.value}>
                       {issueTypes.map(type => <option key={type} value={type}>{type}</option>)}
                     </select>
                   </td>
-
-                  {/* 🔹 Desplegable para modificar el Estado */}
                   <td>
                     <select defaultValue={alert.Estado} onChange={(e) => alert.Estado = e.target.value}>
                       {["Pendiente", "En revisión", "Arreglada"].map(status =>
@@ -123,11 +159,9 @@ const AlertTable = ({ alerts, setAlerts }) => {
                       )}
                     </select>
                   </td>
-
-                  {/* 🔹 Botón para guardar cambios */}
                   <td>
                     <button className="save-btn" onClick={() => handleSave(alert.ID, alert.Tipo_avería, alert.Estado)}>
-                      ✅ Guardar
+                      v Guardar
                     </button>
                   </td>
                 </>
@@ -136,13 +170,10 @@ const AlertTable = ({ alerts, setAlerts }) => {
                   <td>{alert.Tipo_avería}</td>
                   <td>{alert.Estado}</td>
                   <td className="action-column">
-                    {/* 🔹 Botón para reproducir el audio */}
-                    <button className="action-btn" onClick={() => handlePlay(alert.ID)}>
+                    <button className="action-btn" onClick={(e) => handlePlay(alert.ID, e)}>
                       {playingRow === alert.ID ? "🎧 Escuchando..." : <img src={require("../styles/img/play.png")} alt="Escuchar avería" />}
                     </button>
-
-                    {/* 🔹 Botón para activar la edición */}
-                    <button className="action-btn" onClick={() => handleEdit(alert.ID)}>
+                    <button className="action-btn" onClick={(e) => { e.stopPropagation(); handleEdit(alert.ID); }}>
                       <img src={require("../styles/img/edit.png")} alt="Editar" />
                     </button>
                   </td>
@@ -152,6 +183,18 @@ const AlertTable = ({ alerts, setAlerts }) => {
           ))}
         </tbody>
       </table>
+
+      {/* Popup */}
+      {selectedAlert && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button className="modal-close" onClick={closeModal}>✖</button>
+            <h3>Detalles de la alerta</h3>
+            <p><strong>Máquina:</strong> {selectedAlert.Máquina}</p>
+            <canvas ref={chartRef} style={{ width: "100%", height: "300px", marginTop: "20px" }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

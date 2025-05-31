@@ -59,7 +59,7 @@ const App = () => {
             {/* 🔹 Filtros ahora están separados y afectan AlertTable y Graphs */}
             <Filters onFilterChange={handleFilterChange} />
 
-            <AlertTable alerts={alerts} setFilters={setFilters} />
+            <AlertTable alerts={alerts} setFilters={setFilters} setAlerts={setAlerts} />
             <Graphs alertData={alerts} fullAlertData={alertsSinFiltrar} filteredMonth={filters.mes} />
 
             {/* <h2>Mapa de Alertas</h2> */}

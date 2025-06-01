@@ -43,7 +43,7 @@ def record_audio():
         '-r', str(48000),
         '-f', 'S32_LE',
         '-t', 'wav',
-        '-d', str(int(5)),
+        '-d', str(int(10)),
         '-q'                # silencio en consola
     ]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)

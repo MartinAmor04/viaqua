@@ -84,6 +84,8 @@
   text-align: center;
 }
 
+
+
 /* 📌 Columnas del encabezado */
 .alert-table th {
     font-size: 0.7em;
@@ -100,8 +102,8 @@
 }
 
 .action-btn img {
-  width: 30px; /* Tamaño de la imagen dentro del botón */
-  height: 30px;
+  width: 25px; /* Tamaño de la imagen dentro del botón */
+  height: 25px;
 }
 
 /* 🔹 Estilos para los desplegables (tipo de avería y estado) */
@@ -114,7 +116,9 @@ select {
     font-size: 14px;
     width: 100%;
 }
-
+.alert-table tr {
+  font-size: 1.1em;
+}
 select:hover {
     border-color: var(--color-black);
 }
@@ -141,11 +145,6 @@ select:focus {
   font-size: 0.9em;
 }
 
-/* 🔹 Asegurar que los botones de acción tengan espacio */
-.action-column {
-    display: flex;
-    gap: 10px;
-}
 
 .modal-overlay {
   position: fixed;

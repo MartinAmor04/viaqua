@@ -16,7 +16,7 @@ def get_connection():
         print(f"❌ Error de conexión a la base de datos: {err}")
         return None
 
-def get_alerts(estado_filtro="Activas"):
+def get_alerts(estado_filtro="Pendiente"):
     """Obtiene alertas filtradas por estado y las devuelve en formato DataFrame."""
     conn = get_connection()
     if conn is None:
@@ -47,7 +47,7 @@ def get_alerts(estado_filtro="Activas"):
                 "Todas": ""  # No aplica filtros
             }
 
-            query += filtros.get(estado_filtro, filtros["Activas"])
+            query += filtros.get(estado_filtro, filtros["Pendiente"])
             cursor.execute(query)
             alertas = cursor.fetchall()
 

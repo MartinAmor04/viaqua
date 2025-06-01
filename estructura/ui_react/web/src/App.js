@@ -10,7 +10,7 @@ import "./styles/main.css";
 
 const App = () => {
     const [filters, setFilters] = useState({ 
-        estado: "Activas", 
+        estado: "Pendiente", 
         tipo: "Todos", 
         ubicacion: "Todas", 
         mes: new Date().toLocaleString("en-US", { month: "short" }) // ✅ Guardamos el mes en formato "Jan"

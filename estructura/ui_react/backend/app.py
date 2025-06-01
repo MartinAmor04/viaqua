@@ -9,7 +9,7 @@ CORS(app)  # Habilita comunicación con React
 @app.route("/api/alerts", methods=["GET"])
 def obtener_alertas():
     """Obtiene alertas desde la base de datos con filtros opcionales."""
-    estado = request.args.get("estado", "Activas")
+    estado = request.args.get("estado", "Pendiente")
     data = get_alerts(estado)
     return jsonify(data)
 

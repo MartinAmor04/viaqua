@@ -5,7 +5,7 @@ const Filters = ({ onFilterChange }) => {
     // 🔹 Obtener el mes actual en formato "Jan"
     const currentMonth = new Date().toLocaleString("en-US", { month: "short" });
 
-    const [estado, setEstado] = useState("Activas");
+    const [estado, setEstado] = useState("Pendiente");
     const [tipo, setTipo] = useState("Todos");
     const [ubicacion, setUbicacion] = useState("Todas");
     const [mes, setMes] = useState(currentMonth);

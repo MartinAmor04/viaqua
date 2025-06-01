@@ -1,6 +1,6 @@
 const API_URL = "http://127.0.0.1:5000/api";
 
-export async function fetchAlerts(estado = "Activas") {
+export async function fetchAlerts(estado = "Pendiente") {
     try {
         const response = await fetch(`${API_URL}/alerts?estado=${estado}`);
         const data = await response.json();

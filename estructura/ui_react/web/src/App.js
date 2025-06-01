@@ -53,17 +53,24 @@ const App = () => {
     };
 
     return (
-        <div className="container">
-            <Header />
+        <div >
             
-            {/* 🔹 Filtros ahora están separados y afectan AlertTable y Graphs */}
-            <Filters onFilterChange={handleFilterChange} />
+            <Header /> 
+            <div className="container">
+                {/* 🔹 Filtros ahora están separados y afectan AlertTable y Graphs */}
+                <Filters onFilterChange={handleFilterChange} />
 
-            <AlertTable alerts={alerts} setFilters={setFilters} setAlerts={setAlerts} />
-            <Graphs alertData={alerts} fullAlertData={alertsSinFiltrar} filteredMonth={filters.mes} />
+                <AlertTable alerts={alerts} setFilters={setFilters} setAlerts={setAlerts} />
+                <Graphs alertData={alerts} fullAlertData={alertsSinFiltrar} filteredMonth={filters.mes} />
 
-            {/* <h2>Mapa de Alertas</h2> */}
-            <MapComponent fullAlertData={alertsSinFiltrar} />       
+                {/* <h2>Mapa de Alertas</h2> */}
+                <MapComponent fullAlertData={alertsSinFiltrar} />       
+            </div>
+            <div class="footer">
+                <div>  <img src={"favicon.png"} alt="CuruxIA Logo" className="header-logo"/> </div>
+                <div>Copyright © CuruxIA </div>
+            </div>
+
         </div>
     );
 };

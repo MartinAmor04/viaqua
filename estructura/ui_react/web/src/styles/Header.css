@@ -1,13 +1,33 @@
 /* 🏗 Estilo del header */
 .header {
+  position:sticky;
+  top: 0;
   display: flex;
   justify-content: center; /* Centra horizontalmente */
   align-items: center;
   padding: 50px;
   gap: 60px; /* Mayor separación entre título y logo */
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Sombra suave */
-  border-radius: 10px;
   background-color: white;
+  height: 250px;
+  background-image: linear-gradient(to left, rgba(255, 255, 255, 0.5), rgba(3, 39, 64, 0)), url('img/probando.png');
+  /* background-image: url('img/probando.png'); */
+}
+
+.header.shrink {
+  height: 100px;
+
+}
+
+.header.shrink .header-title {
+  font-size: 4rem;
+  text-align: center;
+}
+.header.shrink .header-subtitle {
+
+  font-size:1.2em;
+  text-align: center;
+
 }
 
 /* 🎨 Estilo del título */
@@ -17,6 +37,28 @@
   margin: 0;
 }
 
+.header-subtitle {
+  color: var(--color-primary);
+  font-family: "Montserrat";
+  font-weight: 600;
+  font-size:1.5em;
+  width:100%;
+  text-align: center;
+
+}
+.header-button {
+  border-radius:10px;
+  border: none;
+  font-family: "Montserrat";
+  font-weight: 600;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Sombra suave */
+
+  font-size:1.5em;
+  color: var(--color-primary);
+  padding:0.8em;
+  display: flex;
+  gap:20px;
+}
 /* 🔹 Colores del título "CuruxIA" */
 .header-title span.curux {
   color: var(--color-primary);
@@ -28,8 +70,8 @@
 
 /* 🏷 Estilo del logo */
 .header-logo {
-  width: 140px; /* Más grande */
-  height: 140px;
+  width: 30px; /* Más grande */
+  height: 30px;
 }
 
 .theme-toggle {

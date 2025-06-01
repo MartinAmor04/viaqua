@@ -17,12 +17,40 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-top: 20px;
+
 }
 
 
 .graph-title {
-  font-size: 2rem; /* Más grande */
-  font-family:  Tahoma,  Verdana, sans-serif;
-  color: var(--color-primary); /* Color primario */
+  font-size: 2.7rem; /* Más grande */
+  font-family:  'Montserrat', Tahoma,  Verdana, sans-serif;
+  color: var(--color-secondary); /* Color primario */
   margin-bottom: 20px;
+  font-weight: 600;
+  /* background-color: var(--color-secondary); */
+  padding: 0em 1em 0.2em 0em;
+  display: inline-block;
+  border-bottom: 5px solid var(--color-secondary);
+  /* border-left: 4px solid var(--color-secondary);; */
+}
+
+
+.footer {
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);  
+
+  background-color: white;
+  text-align: center;
+  bottom: 0;
+  margin-top: 1em;
+  padding: 2.5em;
+  font-weight: light;
+  font-family: 'Montserrat';
+  font-size: 1.2em;
+  color: var(--color-primary)
+}
+
+.footer img {
+  width: 60px;
+  height: 60px;
 }

@@ -6,9 +6,12 @@ function Header() {
     return localStorage.getItem("darkMode") === "enabled";
   });
 
+  const [isShrunk, setIsShrunk] = useState(false);
+
   useEffect(() => {
+    // Manejo del modo oscuro
     if (darkMode) {
-      document.documentElement.classList.add("dark-mode"); // ✅ Aplica al <html>
+      document.documentElement.classList.add("dark-mode");
       localStorage.setItem("darkMode", "enabled");
     } else {
       document.documentElement.classList.remove("dark-mode");
@@ -16,14 +19,25 @@ function Header() {
     }
   }, [darkMode]);
 
-  return (
-    <header className="header">
-      <h1 className="header-title">
-        <span className="curux">Curux</span><span className="ia">IA</span>
-      </h1>
-      <img src={require("../styles/img/favicon.png")} alt="CuruxIA Logo" className="header-logo" />
+  useEffect(() => {
+    // Manejo del scroll para shrink
+    const handleScroll = () => {
+      setIsShrunk(window.scrollY > 1);
+    };
 
-      {/* 🔄 Botón de modo oscuro */}
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <header className={`header ${isShrunk ? "shrink" : ""}`}>
+      <div>
+        <h1 className="header-title">
+          <span className="curux">Curux</span><span className="ia">IA</span>
+        </h1>
+        <p className="header-subtitle">Mantemento preditivo a baixo custe</p>
+      </div>
+
       <button className="theme-toggle" onClick={() => setDarkMode(!darkMode)}>
         {darkMode ? "Modo Claro" : "Modo Oscuro"}
       </button>
@@ -32,4 +46,3 @@ function Header() {
 }
 
 export default Header;
-

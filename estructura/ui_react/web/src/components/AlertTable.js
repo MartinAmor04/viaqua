@@ -147,7 +147,7 @@ const AlertTable = ({ alerts, setAlerts }) => {
 
   return (
     <div className="alert-table-container">
-      <h2 className="table-title">Xestión de alertas</h2>
+      <h2 className="graph-title">Xestión de alertas</h2>
 
       <table className="alert-table">
         <thead>

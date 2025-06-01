@@ -38,11 +38,9 @@ const Filters = ({ onFilterChange }) => {
                 <div>
                     <label>Estado:</label>
                     <select value={estado} onChange={(e) => handleFilterChange(e, "estado")}>
-                        <option value="Activas">Activas</option>
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="En revisión">En revisión</option>
-                        <option value="Arreglada">Arreglada</option>
                         <option value="Todas">Todas</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Arreglada">Arreglada</option>
                     </select>
                 </div>
                 

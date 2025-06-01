@@ -86,7 +86,6 @@
 
 /* 📌 Columnas del encabezado */
 .alert-table th {
-    text-align: center; /* 🔹 Texto centrado */
     font-size: 0.7em;
     font-family: 'Montserrat', sans-serif; /* 🔹 Tipografía Montserrat */
 }

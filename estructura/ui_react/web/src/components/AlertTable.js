@@ -75,7 +75,15 @@ const AlertTable = ({ alerts, setAlerts }) => {
   };
 
   const issueTypes = ["Rodamientos", "Fallo de fase", "Sobrecalentamiento", "Fallo mecánico", "Fallo eléctrico", "Válvula dañada"];
-
+  function getSpanishDate(raw_date) {
+    const date=new Date(raw_date)
+    const day=date.getDate()
+    const month=date.getMonth()+1
+    const year=date.getFullYear()
+    const hour = date.getHours().toString().padStart(2, '0'); 
+    const minutes = date.getMinutes().toString().padStart(2, '0'); 
+    return {full_date: day+'/'+month+'/'+year, full_hour: hour + ':' + minutes}
+  }
   useEffect(() => {
     if (selectedAlert && chartRef.current) {
       const fetchData = async () => {
@@ -135,7 +143,7 @@ const AlertTable = ({ alerts, setAlerts }) => {
 
       fetchData();
     }
-  }, [selectedAlert, alerts]);
+  }, [selectedAlert, alerts, getSpanishDate]);
 
   return (
     <div className="alert-table-container">
@@ -156,7 +164,7 @@ const AlertTable = ({ alerts, setAlerts }) => {
           {alerts.map((alert) => (
             <tr key={alert.ID} >
               <td className='maquina' onClick={() => handleRowClick(alert)} style={{ cursor: "pointer" }}><span className='maquinote'>{alert.Máquina}</span><br></br>{alert.Tipo}</td>
-              <td>{alert.Fecha_hora}</td>
+              <td>{getSpanishDate(alert.Fecha_hora).full_date} <br></br>{getSpanishDate(alert.Fecha_hora).full_hour}</td>
               <td>{alert.Ubicación}</td>
 
               {editRow === alert.ID ? (

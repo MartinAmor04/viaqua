@@ -8,6 +8,7 @@ import os
 import logging
 import tensorflow as tf
 import pickle
+import warnings
 
 # Configuración de hilos para TensorFlow
 os.environ['TF_NUM_INTRAOP_THREADS'] = '4'
@@ -18,7 +19,7 @@ from collections import deque
 import noisereduce as nr
 
 # ----------------------------- CONFIGURACIÓN GLOBAL -----------------------------
-
+warnings.filterwarnings("ignore")
 N_MELS = 128
 FIXED_FRAMES = 128
 DURATION = 3.0  # segundos de grabación

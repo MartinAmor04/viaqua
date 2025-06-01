@@ -43,7 +43,7 @@ const App = () => {
         );
 
         console.log("✅ Datos filtrados:", filteredData);
-        setAlerts(filteredData);
+        setAlerts(filteredData.slice(0,10));
     }, [filters, alertsSinFiltrar]); // 🔥 Se ejecuta cuando cambia `filters` o `alertsSinFiltrar`
 
     // ✅ Función para actualizar los filtros globalmente

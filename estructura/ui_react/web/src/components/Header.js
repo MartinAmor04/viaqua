@@ -38,9 +38,7 @@ function Header() {
         <p className="header-subtitle">Mantemento preditivo a baixo custe</p>
       </div>
 
-      <button className="theme-toggle" onClick={() => setDarkMode(!darkMode)}>
-        {darkMode ? "Modo Claro" : "Modo Oscuro"}
-      </button>
+
     </header>
   );
 }

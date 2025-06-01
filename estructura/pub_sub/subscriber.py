@@ -62,7 +62,7 @@ def send_email(subject, body):
     receiver_email = EMAIL_RECEIVER
     password = EMAIL_PASSWORD
 
-    msg = MIMEText(body)
+    msg = MIMEText(body, "plain") 
     msg["Subject"] = subject
     msg["From"] = sender_email
     msg["To"] = receiver_email

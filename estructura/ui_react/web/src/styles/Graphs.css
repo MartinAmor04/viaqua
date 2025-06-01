@@ -25,13 +25,13 @@
 .graph-title {
   font-size: 2.7rem; /* Más grande */
   font-family:  'Montserrat', Tahoma,  Verdana, sans-serif;
-  color: var(--color-secondary); /* Color primario */
+  color: var(--color-primary); /* Color primario */
   margin-bottom: 20px;
   font-weight: 600;
   /* background-color: var(--color-secondary); */
   padding: 0em 1em 0.2em 0em;
   display: inline-block;
-  border-bottom: 5px solid var(--color-secondary);
+  border-bottom: 5px solid var(--color-primary);
   /* border-left: 4px solid var(--color-secondary);; */
 }
 

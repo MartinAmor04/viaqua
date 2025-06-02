@@ -35,21 +35,14 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(MQTT_TOPIC)
     print(f"Suscrito al topic: {MQTT_TOPIC}")
 
-def on_message(client, userdata, msg):
+def on_message(client, userdata, msg = 'none'):
     mensaje = msg.payload.decode()
     mensaje_dict = json.loads(mensaje)
     machine_id = mensaje_dict.get("machine_id")
     audio_string = mensaje_dict.get("audio_record")
     machine_data=get_machine(machine_id)
-    print(machine_data)
-    print(f"Mensaje recibido en {msg.topic}")
     msg = f"""
-    Hola,
-    CuruxIA ha detectado un fallo.
-    * ID MÁQUINA: {machine_data[0]}
-    * TIPO: {machine_data[3]}
-    * LUGAR: {machine_data[2]}
-    Para más información consulta tu CuruxIA APP-
+    Hola, \nCuruxIA ha detectado un fallo. \n* MÁQUINA: {machine_data[1]} \n* TIPO: {machine_data[3]} \n* LUGAR: {machine_data[2]} \n* ERROR: Fallo de Fase\n Para más información consulta tu CuruxIA APP.
     """ 
     send_email("CuruxIA: fallo en máquina.", msg)
     add_alert(machine_id, audio_string)

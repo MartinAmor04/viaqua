@@ -43,7 +43,9 @@ const App = () => {
         );
 
         console.log("✅ Datos filtrados:", filteredData);
-        setAlerts(filteredData.slice(0,10));
+        const sortedData = filteredData.sort((a, b) => new Date(b.Fecha_hora) - new Date(a.Fecha_hora));
+
+        setAlerts(sortedData.slice(0,10));
     }, [filters, alertsSinFiltrar]); // 🔥 Se ejecuta cuando cambia `filters` o `alertsSinFiltrar`
 
     // ✅ Función para actualizar los filtros globalmente

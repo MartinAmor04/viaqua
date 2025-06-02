@@ -41,9 +41,7 @@ def on_message(client, userdata, msg = 'none'):
     machine_id = mensaje_dict.get("machine_id")
     audio_string = mensaje_dict.get("audio_record")
     machine_data=get_machine(machine_id)
-    msg = f"""
-    Hola, \nCuruxIA ha detectado un fallo. \n* MÁQUINA: {machine_data[1]} \n* TIPO: {machine_data[3]} \n* LUGAR: {machine_data[2]} \n* ERROR: Fallo de Fase\n Para más información consulta tu CuruxIA APP.
-    """ 
+    msg = f"""Hola, \nCuruxIA ha detectado un fallo. \n\t* MÁQUINA: {machine_data['public_id']} \n\t* TIPO: {machine_data['machine_type']} \n\t* LUGAR: {machine_data['place']} \n\t* ERROR: Fallo de Fase\n Para más información consulta tu CuruxIA APP.""" 
     send_email("CuruxIA: fallo en máquina.", msg)
     add_alert(machine_id, audio_string)
 
@@ -64,6 +62,7 @@ def send_email(subject, body):
         server.starttls()
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_email, msg.as_string())
+    print('Correo enviado')
     
 # === CLIENTE MQTT ===
 client = mqtt.Client()

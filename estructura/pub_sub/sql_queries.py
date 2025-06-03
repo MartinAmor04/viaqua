@@ -41,7 +41,7 @@ def edit_alert(alert_id, new_alert_type):
 def add_alert(machine_id, encoded_audio):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO alert (machine_id, date_time, alert_type, audio_record) VALUES (%s, NOW(), %s, %s);", (machine_id, 'No clasificado', encoded_audio))
+    cursor.execute("INSERT INTO alert (machine_id, date_time, alert_type, audio_record) VALUES (%s, NOW(), %s, %s);", (machine_id, 'Fallo de Fase', encoded_audio))
     conn.commit()
     cursor.close()
     conn.close()
